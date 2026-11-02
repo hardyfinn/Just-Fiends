@@ -120,7 +120,7 @@ inline float shapeCurve(float v, float c, bool rising) {
 	return ex + (sn - ex) * w;
 }
 
-struct Engine {
+struct SlopeEngine {
 	Controls c;
 	Slope s[6];
 	float gateV[6] = {};      // gate/trigger voltage reaching each channel (after normalling)

@@ -73,7 +73,7 @@ struct JustFiends : Module {
 		LIGHTS_LEN
 	};
 
-	Engine e;
+	SlopeEngine e;
 	bool polyPitch = false, geode = false, velocity = true;
 	int geodeRealign = 1;
 
@@ -189,7 +189,7 @@ struct JustFiends : Module {
 		};
 	}
 
-	float JfRatio(int i) { return polyPitch ? 1.f : (float) Engine::intoneRatio(i + 1, e.c.intone); }
+	float JfRatio(int i) { return polyPitch ? 1.f : (float) SlopeEngine::intoneRatio(i + 1, e.c.intone); }
 
 	void onReset() override {
 		polyPitch = false; geode = false; velocity = true; geodeRealign = 1;
@@ -380,7 +380,7 @@ struct FiendDisplay : Widget {
 			return;
 		}
 		JustFiends* m = module;
-		Engine& e = m->e;
+		SlopeEngine& e = m->e;
 		int b = e.behaviour;
 
 		// header: range / mode, then what is happening

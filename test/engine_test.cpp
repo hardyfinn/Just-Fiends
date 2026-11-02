@@ -11,8 +11,8 @@ static int fails = 0;
 
 static const float SR = 48000.f, DT = 1.f / SR;
 
-static Engine make(int range, int mode) {
-	Engine e;
+static SlopeEngine make(int range, int mode) {
+	SlopeEngine e;
 	e.sampleRate = SR;
 	e.c.range = range;
 	e.c.mode = mode;
@@ -20,10 +20,10 @@ static Engine make(int range, int mode) {
 	return e;
 }
 
-static void allGates(Engine& e, float v) { for (int i = 0; i < 6; i++) e.gateV[i] = v; }
+static void allGates(SlopeEngine& e, float v) { for (int i = 0; i < 6; i++) e.gateV[i] = v; }
 
 // count cycle starts on channel ch over `secs`
-static int countWraps(Engine& e, int ch, float secs) {
+static int countWraps(SlopeEngine& e, int ch, float secs) {
 	int n = 0;
 	for (long k = 0; k < (long) (secs * SR); k++) { e.process(DT); if (e.s[ch].wrapped) n++; }
 	return n;
@@ -32,23 +32,23 @@ static int countWraps(Engine& e, int ch, float secs) {
 int main() {
 	// 1. sound cycle at noon = middle C, and Intone fully CW makes channel N run N times faster
 	{
-		Engine e = make(SOUND, CYCLE);
+		SlopeEngine e = make(SOUND, CYCLE);
 		e.c.intone = 1.f;
 		int w1 = countWraps(e, 0, 1.f);
-		Engine e2 = make(SOUND, CYCLE); e2.c.intone = 1.f;
+		SlopeEngine e2 = make(SOUND, CYCLE); e2.c.intone = 1.f;
 		int w3 = countWraps(e2, 2, 1.f);
 		CHECK(std::abs(w1 - 262) <= 1, "sound cycle at noon is middle C (%d Hz)", w1);
 		CHECK(std::abs(w3 - 785) <= 2, "Intone CW: 3N runs 3x (%d Hz)", w3);
-		Engine e3 = make(SOUND, CYCLE); e3.c.intone = -1.f;
+		SlopeEngine e3 = make(SOUND, CYCLE); e3.c.intone = -1.f;
 		int w6 = countWraps(e3, 5, 1.f);
 		CHECK(std::abs(w6 - 44) <= 1, "Intone CCW: 6N runs at 1/6 (%d Hz)", w6);
-		Engine e4 = make(SOUND, CYCLE); e4.c.voct[0] = 1.f;
+		SlopeEngine e4 = make(SOUND, CYCLE); e4.c.voct[0] = 1.f;
 		int wo = countWraps(e4, 0, 1.f);
 		CHECK(std::abs(wo - 523) <= 1, "1 V/oct on TIME doubles the pitch (%d Hz)", wo);
 	}
 	// 2. shape transient: one rise and fall per trigger, 1 s at noon, peak 8 V
 	{
-		Engine e = make(SHAPE, TRANSIENT);
+		SlopeEngine e = make(SHAPE, TRANSIENT);
 		e.gateV[0] = 5.f; e.process(DT); e.gateV[0] = 0.f;
 		float peak = 0.f; long len = 0;
 		for (long k = 0; k < (long) (3 * SR); k++) { e.process(DT); peak = std::max(peak, e.s[0].out); if (e.s[0].seg != IDLE) len = k; }
@@ -58,7 +58,7 @@ int main() {
 	}
 	// 3. sustain holds at the top while the gate is high
 	{
-		Engine e = make(SHAPE, SUSTAIN);
+		SlopeEngine e = make(SHAPE, SUSTAIN);
 		e.c.time = 1.f;  // fast
 		e.gateV[0] = 5.f;
 		for (int k = 0; k < (int) SR; k++) e.process(DT);
@@ -69,7 +69,7 @@ int main() {
 	}
 	// 4. volley: RUN at 5 V fires 16 cycles per trigger
 	{
-		Engine e = make(SHAPE, CYCLE);
+		SlopeEngine e = make(SHAPE, CYCLE);
 		e.c.run = true; e.c.runV = 5.f; e.c.time = 0.9f;
 		// let the free-running cycle finish first
 		for (int k = 0; k < (int) SR * 2; k++) e.process(DT);
@@ -79,7 +79,7 @@ int main() {
 	}
 	// 5. shift: RUN 5 V ignores triggers until the slope is done (a clock divider)
 	{
-		Engine e = make(SHAPE, TRANSIENT);
+		SlopeEngine e = make(SHAPE, TRANSIENT);
 		e.c.run = true; e.c.runV = 5.f; e.c.time = 0.5f; // 1 s slope
 		int starts = 0; int prevSeg = IDLE;
 		for (long k = 0; k < (long) (4 * SR); k++) {
@@ -92,7 +92,7 @@ int main() {
 	}
 	// 6. strata follows RUN
 	{
-		Engine e = make(SHAPE, SUSTAIN);
+		SlopeEngine e = make(SHAPE, SUSTAIN);
 		e.c.run = true; e.c.runV = 4.f; e.c.time = 1.f;
 		allGates(e, 5.f);
 		for (int k = 0; k < (int) SR; k++) e.process(DT);
@@ -103,7 +103,7 @@ int main() {
 	}
 	// 7. plume: a pluck decays to silence
 	{
-		Engine e = make(SOUND, SUSTAIN);
+		SlopeEngine e = make(SOUND, SUSTAIN);
 		e.c.run = true; e.c.runV = 0.f;  // 20 ms decay
 		e.gateV[0] = 5.f; e.process(DT);
 		float peak = 0.f;
@@ -113,7 +113,7 @@ int main() {
 	}
 	// 8. velocity in sound range
 	{
-		Engine e = make(SOUND, SUSTAIN);
+		SlopeEngine e = make(SOUND, SUSTAIN);
 		e.gateV[0] = 2.5f;
 		float peak = 0.f;
 		for (int k = 0; k < (int) SR / 4; k++) { e.process(DT); peak = std::max(peak, std::fabs(e.s[0].out)); }
@@ -121,7 +121,7 @@ int main() {
 	}
 	// 9. geode: Intone CW makes channel N fire N times per clock
 	{
-		Engine e = make(SHAPE, TRANSIENT);
+		SlopeEngine e = make(SHAPE, TRANSIENT);
 		e.c.geode = true; e.c.intone = 1.f; e.c.time = 1.f;
 		int starts[6] = {}; int prev[6] = {};
 		long clk = (long) (SR / 2);
@@ -139,7 +139,7 @@ int main() {
 		std::uniform_real_distribution<float> u(0.f, 1.f);
 		bool okv = true;
 		for (int trial = 0; trial < 60; trial++) {
-			Engine e = make(trial % 2, (trial / 2) % 3);
+			SlopeEngine e = make(trial % 2, (trial / 2) % 3);
 			e.c.run = u(rng) > 0.5f; e.c.runV = u(rng) * 12.f - 4.f;
 			e.c.time = u(rng); e.c.intone = u(rng) * 2 - 1; e.c.ramp = u(rng) * 2 - 1; e.c.curve = u(rng) * 2 - 1;
 			e.c.fmOct = u(rng) * 6 - 3; e.c.geode = trial % 7 == 0; e.c.polyPitch = trial % 5 == 0;
