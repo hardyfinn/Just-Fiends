@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Just Fiends Guide</title>
+<style>
+:root{--bg:#1d1720;--panel:#2b2230;--ink:#efe9dc;--soft:#a79fb0;--acid:#b8e04a;--line:#43384a;
+--c1:#f2ecde;--c2:#f26b5b;--c3:#f2b13a;--c4:#b8e04a;--c5:#4cd6c8;--c6:#9b8cf5;--code:#140f17}
+@media (prefers-color-scheme: light){:root:not([data-theme="dark"]){--bg:#f6f2ea;--panel:#ece5f0;--ink:#231c27;--soft:#5d5566;--acid:#4e7a00;--line:#d4cad9;
+--c1:#3a3340;--c2:#c23c2d;--c3:#a86a00;--c4:#4e7a00;--c5:#0f8577;--c6:#5a49c4;--code:#fffdf8}}
+:root[data-theme="light"]{--bg:#f6f2ea;--panel:#ece5f0;--ink:#231c27;--soft:#5d5566;--acid:#4e7a00;--line:#d4cad9;
+--c1:#3a3340;--c2:#c23c2d;--c3:#a86a00;--c4:#4e7a00;--c5:#0f8577;--c6:#5a49c4;--code:#fffdf8}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:860px;margin:0 auto;padding:32px 16px 80px}
+h1{font-size:2.2rem;letter-spacing:.08em;margin:.2em 0 0}
+h2{margin-top:2.4em;border-bottom:1px solid var(--line);padding-bottom:.3em}
+h3{margin-top:1.8em}
+.sub{color:var(--soft);margin-top:0}
+nav{background:var(--panel);border-radius:10px;padding:12px 18px;margin:24px 0}
+nav a{color:var(--ink);margin-right:14px;white-space:nowrap}
+table{border-collapse:collapse;width:100%;margin:12px 0;font-size:.95rem}
+th,td{border:1px solid var(--line);padding:7px 9px;text-align:left;vertical-align:top}
+th{background:var(--panel)}
+.wrap{overflow-x:auto}
+code,kbd{background:var(--code);border:1px solid var(--line);border-radius:4px;padding:0 4px;font-size:.9em}
+.card{background:var(--panel);border-radius:10px;padding:16px 20px;margin:18px 0}
+.card h3{margin-top:0}
+.tag{display:inline-block;font-size:.75rem;font-weight:700;letter-spacing:.06em;border:1px solid var(--acid);color:var(--acid);border-radius:999px;padding:0 8px;margin-right:6px}
+ol.cables li{margin:4px 0}
+.note{border-left:3px solid var(--acid);padding:4px 14px;color:var(--soft)}
+.ch1{color:var(--c1)}.ch2{color:var(--c2)}.ch3{color:var(--c3)}.ch4{color:var(--c4)}.ch5{color:var(--c5)}.ch6{color:var(--c6)}
+svg{max-width:100%;height:auto}
+</style>
+</head>
+<body>
+<main>
+<h1>JUST FIENDS</h1>
+<p class="sub">Six linked slopes for VCV Rack, by Haer. A learning twin of the six-channel function generator in your rig.</p>
+
+<nav>
+<a href="#idea">The idea</a><a href="#panel">Panel tour</a><a href="#modes">Modes</a><a href="#run">Run modes</a>
+<a href="#extras">Poly pitch and Geode</a><a href="#patches">Starter patches</a><a href="#rig">Your rig</a><a href="#differences">Differences</a>
+</nav>
+
+<h2 id="idea">The idea in one minute</h2>
+<p>Just Fiends is <b>one function generator copied six times</b>. All six copies share the same TIME, RAMP and CURVE.
+The only thing that makes them different is <b>INTONE</b>, which sets how fast each channel runs compared with the first one (IDENTITY).</p>
+<ul>
+<li>INTONE at noon: all six are identical.</li>
+<li>INTONE fully clockwise: channel N runs N times faster. That is the harmonic series: in Sound range one note becomes a big chord; in Shape range one LFO becomes six related LFOs.</li>
+<li>INTONE fully anticlockwise: channel N runs N times slower (subharmonics, long divisions).</li>
+<li>In between, the ratios are not whole numbers, so the channels drift in and out of phase. This is where the Autechre-style slow evolving movement comes from.</li>
+</ul>
+<svg viewBox="0 0 600 150" role="img" aria-label="Six slopes at Intone fully clockwise">
+<script>
+(function(){const s=document.currentScript.parentNode,cols=['--c1','--c2','--c3','--c4','--c5','--c6'];
+for(let n=1;n<=6;n++){let d='';for(let k=0;k<=300;k++){const x=k*2,ph=(k/300*n)%1,v=ph<.5?ph*2:2-ph*2;d+=(k?'L':'M')+x+','+(n*23-v*18).toFixed(1)}
+const p=document.createElementNS('http://www.w3.org/2000/svg','path');p.setAttribute('d',d);p.setAttribute('fill','none');p.setAttribute('stroke-width','1.8');
+p.setAttribute('stroke','var('+cols[n-1]+')');s.appendChild(p);}})();
+</script>
+</svg>
+<p class="note">Above: INTONE fully clockwise. Top line is IDENTITY, then 2N to 6N, each running one step faster.</p>
+
+<h2 id="panel">Panel tour</h2>
+<div class="wrap"><table>
+<tr><th>Control</th><th>What it does</th><th>Try</th></tr>
+<tr><td><b>TIME</b> + V/OCT</td><td>Shape range: how long one rise and fall takes (1 Hz at noon, from about two minutes to 128 Hz). Sound range: pitch, middle C at noon. The jack is 1 V/oct.</td><td>Noon, then sweep slowly while watching the display.</td></tr>
+<tr><td><b>INTONE</b> + CV, amt</td><td>Spreads the six channels (see above). The amt trimmer scales the CV and can invert it.</td><td>Start at noon, then turn clockwise a little.</td></tr>
+<tr><td><b>RAMP</b> + CV, amt</td><td>Balance of rise and fall. Anticlockwise: instant rise, long fall (pluck, saw down). Clockwise: long rise, instant fall (swell, saw up). Noon: triangle.</td><td>Slightly anticlockwise for drums.</td></tr>
+<tr><td><b>CURVE</b> + CV, amt</td><td>Bends the slope: rectangle (gate or square), logarithmic, linear (noon), exponential, sine.</td><td>Between noon and 2 o'clock for punchy envelopes.</td></tr>
+<tr><td><b>FM</b> + FM IN</td><td>Exponential FM of TIME, in octaves per volt. Anticlockwise inverts it.</td><td>Small amounts for vibrato or drunk LFOs.</td></tr>
+<tr><td><b>RANGE</b></td><td>SHAPE: 0 to 8 V envelopes and LFOs. SOUND: &plusmn;5 V oscillators.</td><td></td></tr>
+<tr><td><b>MODE</b></td><td>TRANSIENT: one rise and fall per trigger. SUSTAIN: rise and hold while the gate is high. CYCLE: loop forever.</td><td></td></tr>
+<tr><td><b>RUN</b>, ON, RUN IN</td><td>ON (or patching RUN IN) unlocks a second behaviour for every Range and Mode pairing. The RUN knob adds to the jack, so you can learn the Run modes with no cable.</td><td>See <a href="#run">Run modes</a>.</td></tr>
+<tr><td>Triggers <span class="ch1">IDENTITY</span> to <span class="ch6">6N</span> + buttons</td><td>Each jack also feeds every unpatched jack to its right. One cable into IDENTITY fires all six; patch 4N too and IDENTITY now fires 1N to 3N while 4N fires 4N to 6N. The buttons do the same by hand.</td><td>Press the IDENTITY button with nothing patched.</td></tr>
+<tr><td>POLY TRIG</td><td>Six triggers or gates in one cable (channel 1 = IDENTITY). Combined with the single jacks.</td><td>Poly gates from a MIDI to CV module.</td></tr>
+<tr><td>Outputs, MIX, POLY</td><td>Six outputs. MIX: in Shape range the highest of the six (an analogue OR), in Sound range a soft-clipped sum. POLY carries all six in one cable.</td><td></td></tr>
+</table></div>
+
+<h3>The display</h3>
+<ul>
+<li>Top line: the Range and Mode, then the name of what the module is doing now (for example <code>LFOS</code> or <code>RUN: VOLLEY</code>) and a one-line explanation.</li>
+<li>Seven lanes: the six channels and the MIX, each with its ratio to IDENTITY and its rate. A dot next to a lane means that channel's gate is high.</li>
+<li>Shape range scrolls (newest on the right). Sound range shows a steady scope of two IDENTITY cycles.</li>
+<li>Right: one cycle of the current RAMP and CURVE shape, plus read-outs. Hover any knob or jack for a tooltip that explains it in the current mode.</li>
+</ul>
+
+<h2 id="modes">The six modes</h2>
+<div class="wrap"><table>
+<tr><th></th><th>TRANSIENT</th><th>SUSTAIN</th><th>CYCLE</th></tr>
+<tr><th>SHAPE</th><td><b>Envelopes.</b> Each trigger fires one rise and fall. Triggers during the rise are ignored, so a fast clock gets divided naturally.</td><td><b>ASR.</b> Rises while the gate is high, holds at 8 V, falls when it goes low.</td><td><b>LFOs.</b> Free-running. A trigger resets that channel to the start.</td></tr>
+<tr><th>SOUND</th><td><b>Impulses.</b> Each trigger plays one cycle of the wave. Clocked fast you hear pitched buzz; slow you hear clicks and blips.</td><td><b>Gated oscillators.</b> Six voices that sound while their gate is high. Gate voltage sets the level (5 V = full).</td><td><b>Oscillators.</b> Six free-running oscillators. A trigger hard-syncs that channel.</td></tr>
+</table></div>
+
+<h2 id="run">Run modes</h2>
+<p>Press <b>ON</b> (or patch RUN IN). The RUN voltage (knob plus jack) now has a job that depends on Range and Mode. The display names the mode in green.</p>
+<div class="wrap"><table>
+<tr><th>Name</th><th>Range / Mode</th><th>What RUN does</th></tr>
+<tr><td><b>SHIFT</b></td><td>Shape / Transient</td><td>Moves the retrigger point. 0 V: any trigger restarts the slope. 5 V: triggers are ignored until the slope has finished, so it becomes a clock divider whose division depends on TIME.</td></tr>
+<tr><td><b>STRATA</b></td><td>Shape / Sustain</td><td>Six slew limiters follow the RUN voltage (0 to 8 V), each at its own speed from INTONE. RAMP sets rise against fall speed. A low gate freezes that channel (track and hold); with nothing patched they all track.</td></tr>
+<tr><td><b>VOLLEY</b></td><td>Shape / Cycle</td><td>Each trigger fires a burst of cycles, then stops. RUN sets how many: 1 at 0 V up to 16 at 5 V. Ratchets.</td></tr>
+<tr><td><b>SPILL</b></td><td>Sound / Transient</td><td>Each trigger spills a burst of tone. RUN sets the length, from 5 ms (a click) to about 2 s.</td></tr>
+<tr><td><b>PLUME</b></td><td>Sound / Sustain</td><td>Triggers pluck the voices like a low pass gate: a fast attack, then a decay that also darkens the tone towards a sine. RUN sets the decay, from 20 ms to about 4 s. Trigger voltage sets how hard the pluck is.</td></tr>
+<tr><td><b>FLOOM</b></td><td>Sound / Cycle</td><td>Each voice frequency-modulates the next one in a ring (6N modulates IDENTITY). RUN sets the depth. Bright, metallic, chaotic at the top.</td></tr>
+</table></div>
+
+<h2 id="extras">Poly pitch and Geode (right-click menu)</h2>
+<div class="card">
+<h3>Poly pitch (synth mode)</h3>
+<p>Each channel reads its own channel of the TIME input, and INTONE is ignored. Patch a poly <b>V/OCT</b> from a MIDI to CV module into TIME and its poly <b>GATE</b> into POLY TRIG, and Just Fiends is a six-voice synth. Use Sound / Sustain for organ-like voices, or Sound / Sustain with Run on for Plume plucks. The hardware gets this mode from a Teletype over i2c; here it is one menu tick.</p>
+</div>
+<div class="card">
+<h3>Geode (rhythm machine)</h3>
+<p>IDENTITY becomes a clock input. Each channel plays its own rhythm locked to it, at INTONE's ratio: with INTONE fully clockwise, channel N plays N hits per clock; anticlockwise, channel N plays once every N clocks. Other trigger jacks are ignored.</p>
+<p>In-between INTONE settings give non-whole ratios that drift. <b>Realign every</b> (also in the menu) sets how many clocks pass before all channels snap back together: 1 keeps it tight, 16 lets them wander for four bars. The Mode switch still applies, so Geode in Sound / Sustain with Run on plays plucked rhythms.</p>
+</div>
+
+<h2 id="patches">Starter patches: Detroit meets Autechre</h2>
+<p>These use VCV Fundamental modules plus your other plugins where helpful. Cable lists are in order, so you can rebuild each one from scratch.</p>
+
+<div class="card">
+<h3>1. Strings of Life chord pad</h3>
+<span class="tag">SOUND</span><span class="tag">SUSTAIN</span>
+<p>One note becomes a Detroit string chord, because INTONE clockwise stacks harmonics.</p>
+<ol class="cables">
+<li>MIDI to CV (or your sequencer) <b>V/OCT</b> &rarr; Just Fiends <b>TIME V/OCT</b>.</li>
+<li>MIDI to CV <b>GATE</b> &rarr; <b>IDENTITY</b> (it normals to all six).</li>
+<li>Just Fiends <b>MIX</b> &rarr; VCF in; VCF out &rarr; a reverb, then Audio out.</li>
+<li>LFO (0.05 Hz, sine) &rarr; Just Fiends <b>INTONE CV</b>, amt at 15%.</li>
+</ol>
+<p><b>Settings:</b> TIME noon (tune with V/OCT), INTONE fully clockwise, RAMP 1 o'clock, CURVE 3 o'clock (towards sine), VCF cutoff low with a little resonance.</p>
+<p><b>Variations:</b> INTONE at 2 o'clock gives an out-of-tune, shimmering chord that beats slowly. Turn on Run (Plume) with RUN at 1 V for stabs instead of a pad.</p>
+</div>
+
+<div class="card">
+<h3>2. Six-arm LFO bank for steering an arrangement</h3>
+<span class="tag">SHAPE</span><span class="tag">CYCLE</span>
+<p>The answer to loop fatigue: six related LFOs that only line up again after a long time.</p>
+<ol class="cables">
+<li><span class="ch1">IDENTITY</span> &rarr; filter cutoff of your main loop (through an attenuator).</li>
+<li><span class="ch2">2N</span> &rarr; delay feedback or reverb mix.</li>
+<li><span class="ch3">3N</span> &rarr; Marbles-style randomness amount, or a sequencer's probability CV.</li>
+<li><span class="ch4">4N</span> &rarr; hat VCA level.</li>
+<li><span class="ch5">5N</span> &rarr; a pan or wavefolder.</li>
+<li><span class="ch6">6N</span> &rarr; RAMP CV of this same Just Fiends, amt 30% (it reshapes itself).</li>
+</ol>
+<p><b>Settings:</b> TIME fully anticlockwise to 9 o'clock (slow), INTONE 1 o'clock (non-whole ratios), RAMP noon, CURVE 2 o'clock.</p>
+<p><b>Variations:</b> INTONE fully anticlockwise makes 6N take six times longer than IDENTITY, which suits a 2 to 5 minute arc. Send a trigger to IDENTITY at the start of each 32-bar section to realign everything on purpose.</p>
+</div>
+
+<div class="card">
+<h3>3. Volley ratchet hats</h3>
+<span class="tag">SHAPE</span><span class="tag">CYCLE</span><span class="tag">RUN: VOLLEY</span>
+<ol class="cables">
+<li>Clock (16ths) &rarr; a Bernoulli gate or probability module &rarr; Just Fiends <b>IDENTITY</b>.</li>
+<li>Random (sample and hold, 0 to 5 V, clocked by the same 16ths) &rarr; <b>RUN IN</b>.</li>
+<li><span class="ch1">IDENTITY</span> &rarr; VCA CV for a noise hi-hat; <span class="ch3">3N</span> &rarr; VCA CV for a second, brighter hat.</li>
+</ol>
+<p><b>Settings:</b> TIME around 2 o'clock (one burst cycle about one 64th), INTONE fully clockwise, RAMP fully anticlockwise, CURVE 1 o'clock, RUN knob 0.</p>
+<p><b>Variations:</b> Fixed RUN at 1.3 V gives exactly 5 hits. Switch to Shape / Transient (Shift) and the same patch becomes a clock divider instead.</p>
+</div>
+
+<div class="card">
+<h3>4. Plume bassline</h3>
+<span class="tag">SOUND</span><span class="tag">SUSTAIN</span><span class="tag">RUN: PLUME</span><span class="tag">POLY PITCH</span>
+<ol class="cables">
+<li>Sequencer or Hapax pitch (mono is fine) &rarr; <b>TIME V/OCT</b>.</li>
+<li>Euclidean gates (for example Seuperclidean) &rarr; <b>IDENTITY</b>.</li>
+<li><span class="ch1">IDENTITY</span> &rarr; a saturator or drive, then mixer. <span class="ch2">2N</span> &rarr; same mixer, low level.</li>
+<li>Slow LFO &rarr; <b>RUN IN</b> (0 to 3 V) so decays open and close over 16 bars.</li>
+</ol>
+<p><b>Settings:</b> TIME one octave down (about 10 o'clock), INTONE fully clockwise (2N is an octave up), RAMP 11 o'clock, CURVE noon (the pluck darkens towards sine on its own). Right-click: keep Poly pitch off for this one.</p>
+<p><b>Variations:</b> Turn Poly pitch on, patch a poly MIDI to CV, and you have six-voice plucked chords.</p>
+</div>
+
+<div class="card">
+<h3>5. Geode drum machine</h3>
+<span class="tag">SHAPE</span><span class="tag">TRANSIENT</span><span class="tag">GEODE</span>
+<p>Six interlocking rhythms from one clock, that slowly fall out of and back into line.</p>
+<ol class="cables">
+<li>Clock (quarter notes, 128 BPM) &rarr; <b>IDENTITY</b>. Right-click &rarr; Geode on, Realign every 4 clocks.</li>
+<li><span class="ch1">IDENTITY</span> &rarr; kick trigger. <span class="ch2">2N</span> &rarr; clap or snare VCA. <span class="ch4">4N</span> &rarr; closed hat VCA. <span class="ch6">6N</span> &rarr; a shaker or a percussive filter ping.</li>
+<li><span class="ch3">3N</span> and <span class="ch5">5N</span> &rarr; modulation (filter cutoff, FM depth) for accents in the same rhythm.</li>
+</ol>
+<p><b>Settings:</b> TIME 2 o'clock (short envelopes), INTONE fully clockwise for a straight grid, then nudge to 3 o'clock for broken, Autechre-like timing. RAMP fully anticlockwise, CURVE 1 o'clock.</p>
+<p><b>Variations:</b> Put a slow random voltage into INTONE CV with amt 20% so the rhythm mutates by itself. Realign every 16 for longer drifting phrases.</p>
+</div>
+
+<div class="card">
+<h3>6. Strata chord glides</h3>
+<span class="tag">SHAPE</span><span class="tag">SUSTAIN</span><span class="tag">RUN: STRATA</span>
+<ol class="cables">
+<li>Sequencer pitch CV (0 to 8 V) &rarr; <b>RUN IN</b>.</li>
+<li>Each output <span class="ch1">IDENTITY</span> to <span class="ch6">6N</span> &rarr; the V/OCT of six oscillators (or a poly oscillator from POLY OUT).</li>
+<li>Mix the oscillators, then a filter and reverb.</li>
+</ol>
+<p><b>Settings:</b> TIME 1 o'clock, INTONE fully anticlockwise (6N glides six times slower), RAMP noon.</p>
+<p>Each new note starts as one pitch and smears into the next one voice by voice. Patch gates into individual triggers to freeze some voices and build chords from held notes.</p>
+</div>
+
+<div class="card">
+<h3>7. Floom drone</h3>
+<span class="tag">SOUND</span><span class="tag">CYCLE</span><span class="tag">RUN: FLOOM</span>
+<ol class="cables">
+<li>Very slow LFO (0.02 Hz) &rarr; <b>RUN IN</b>.</li>
+<li><b>MIX</b> &rarr; a VCA, then delay and reverb.</li>
+</ol>
+<p><b>Settings:</b> TIME 9 o'clock (low), INTONE 1 o'clock, CURVE fully clockwise (sine), RAMP noon. As the RUN voltage rises, the ring of FM blooms from a soft chord into metallic noise and back.</p>
+</div>
+
+<h2 id="rig">Moving it to your hardware rig</h2>
+<p>Everything above transfers to the real module in your case, with the same knob positions as starting points.</p>
+<ul>
+<li><b>Pitch:</b> Metropolix or Hapax pitch into TIME (V/OCT). One note plus INTONE clockwise gives the chord in patch 1.</li>
+<li><b>Triggers:</b> Pam's New Workout clock outputs into IDENTITY and 4N to split the normals. Marbles t outputs for random gates. DROID logic (for example a gate that only passes every third bar) into individual channels.</li>
+<li><b>Run:</b> on hardware there is no RUN knob or button; patching the RUN jack is what turns it on. Use a Pam's output set to a fixed voltage, or a DROID P2B8 fader, as your RUN knob.</li>
+<li><b>Processing:</b> outputs into Three Sisters (as a filter bank for patch 1), Cold Mac (crossfade two channels with SURVEY), Just Friends' own outputs into Mangrove for formant pings.</li>
+<li><b>Ableton:</b> Live as clock through CV Tools out of the disting NT, into IDENTITY in Geode-like setups, or into Pam's which then feeds Just Friends.</li>
+</ul>
+<p class="note">Poly pitch and Geode need a Teletype or crow on the hardware (over i2c). In VCV they are menu items, so you can learn the ideas now.</p>
+
+<h2 id="differences">How Just Fiends differs from the hardware</h2>
+<ul>
+<li>Added for learning: the display, mode-aware tooltips, trigger buttons, the RUN knob and ON button, CV amount trimmers, poly in and out, and a velocity option in the menu.</li>
+<li>The six Run modes follow the hardware's ideas and names, but the details are this module's own versions, not exact copies. In particular, Spill (timed bursts) and Floom (a ring of FM) are interpretations.</li>
+<li>MIX here is the highest slope in Shape range and a soft-clipped sum in Sound range.</li>
+<li>Geode is driven by a clock at IDENTITY and INTONE, not by Teletype commands.</li>
+</ul>
+</main>
+</body>
+</html>
