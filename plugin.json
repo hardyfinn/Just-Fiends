@@ -1,0 +1,23 @@
+{
+  "slug": "JustFiends",
+  "name": "Just Fiends",
+  "version": "2.0.0",
+  "license": "GPL-3.0-or-later",
+  "brand": "Haer",
+  "author": "Haer",
+  "authorEmail": "",
+  "authorUrl": "",
+  "pluginUrl": "",
+  "manualUrl": "",
+  "sourceUrl": "https://github.com/hardyfinn/just-fiends",
+  "donateUrl": "",
+  "changelogUrl": "",
+  "modules": [
+    {
+      "slug": "JustFiends",
+      "name": "Just Fiends",
+      "description": "Six linked slopes: envelopes, LFOs and oscillators that share one Time, spread by Intone. Every mode and Run mode is labelled, and a display shows all six shapes",
+      "tags": ["Envelope generator", "Function generator", "LFO", "Oscillator", "Polyphonic", "Slew limiter", "Clock modulator"]
+    }
+  ]
+}

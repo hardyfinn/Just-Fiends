@@ -1,0 +1,6 @@
+build/
+dist/
+plugin.dylib
+plugin.so
+plugin.dll
+test/engine_test
