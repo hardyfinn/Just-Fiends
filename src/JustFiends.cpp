@@ -286,8 +286,8 @@ struct JustFiends : Module {
 			scope[6][scopePos] = e.mix;
 		};
 		if (c.range == SHAPE) {
-			double window = clamp(3.0 / f0, 0.5, 20.0);
-			if (c.mode != CYCLE || c.run) window = clamp(2.5 / f0, 1.0, 20.0);
+			double window = std::min(20.0, std::max(0.5, 3.0 / f0));
+			if (c.mode != CYCLE || c.run) window = std::min(20.0, std::max(1.0, 2.5 / f0));
 			scopeAcc += dt;
 			if (scopeAcc >= window / N) {
 				scopeAcc = 0.0;
