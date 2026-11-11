@@ -489,12 +489,12 @@ struct JustFiendsWidget : ModuleWidget {
 		addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 
 		FiendDisplay* d = createWidget<FiendDisplay>(mm2px(Vec(5.0, 12.6)));
-		d->box.size = mm2px(Vec(132.2, 37.4));
+		d->box.size = mm2px(Vec(162.7, 33.0));
 		d->module = module;
 		addChild(d);
 
-		const float rowA = 64.0, rowB = 78.0, rowC = 89.5;
-		const float xTime = 16.0, xIntone = 42.0, xRamp = 64.0, xCurve = 87.0, xRange = 105.5, xMode = 122.0;
+		const float rowA = 59.5, rowB = 75.5, rowC = 88.5;
+		const float xTime = 18.0, xIntone = 46.0, xRamp = 72.0, xCurve = 98.0, xRange = 122.0, xMode = 146.0;
 		addParam(createParamCentered<RoundBigBlackKnob>(mm2px(Vec(xTime, rowA)), module, JustFiends::TIME_PARAM));
 		addParam(createParamCentered<RoundBigBlackKnob>(mm2px(Vec(xIntone, rowA)), module, JustFiends::INTONE_PARAM));
 		addParam(createParamCentered<RoundLargeBlackKnob>(mm2px(Vec(xRamp, rowA)), module, JustFiends::RAMP_PARAM));
@@ -507,24 +507,24 @@ struct JustFiendsWidget : ModuleWidget {
 		addParam(createParamCentered<Trimpot>(mm2px(Vec(xCurve, rowB)), module, JustFiends::CURVE_ATT_PARAM));
 		addParam(createParamCentered<RoundSmallBlackKnob>(mm2px(Vec(xRange, rowB)), module, JustFiends::FM_PARAM));
 		addParam(createParamCentered<RoundSmallBlackKnob>(mm2px(Vec(xMode, rowB)), module, JustFiends::RUN_PARAM));
-		addParam(createLightParamCentered<VCVLightLatch<MediumSimpleLight<GreenLight>>>(mm2px(Vec(134.0, rowB)), module, JustFiends::RUN_BUTTON, JustFiends::RUN_LIGHT));
+		addParam(createLightParamCentered<VCVLightLatch<MediumSimpleLight<GreenLight>>>(mm2px(Vec(164.0, rowB)), module, JustFiends::RUN_BUTTON, JustFiends::RUN_LIGHT));
 
 		const int cvIn[6] = {JustFiends::TIME_INPUT, JustFiends::INTONE_INPUT, JustFiends::RAMP_INPUT, JustFiends::CURVE_INPUT, JustFiends::FM_INPUT, JustFiends::RUN_INPUT};
 		const float cvX[6] = {xTime, xIntone, xRamp, xCurve, xRange, xMode};
 		for (int i = 0; i < 6; i++)
 			addInput(createInputCentered<PJ301MPort>(mm2px(Vec(cvX[i], rowC)), module, cvIn[i]));
 
-		const float trigY = 107.5, outY = 120.5;
+		const float trigY = 110.6, outY = 123.4;
 		for (int i = 0; i < 6; i++) {
-			float x = 15.5 + 16.5 * i;
+			float x = 16.0 + 21.0 * i;
 			addInput(createInputCentered<PJ301MPort>(mm2px(Vec(x, trigY)), module, JustFiends::TRIG_INPUT + i));
-			addParam(createLightParamCentered<VCVLightButton<SmallSimpleLight<WhiteLight>>>(mm2px(Vec(x + 7.0, trigY)), module, JustFiends::TRIG_BUTTON + i, JustFiends::TRIG_LIGHT + i));
+			addParam(createLightParamCentered<VCVLightButton<SmallSimpleLight<WhiteLight>>>(mm2px(Vec(x + 7.5, trigY)), module, JustFiends::TRIG_BUTTON + i, JustFiends::TRIG_LIGHT + i));
 			addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(x, outY)), module, JustFiends::OUT_OUTPUT + i));
-			addChild(createLightCentered<SmallLight<YellowLight>>(mm2px(Vec(x + 6.2, outY)), module, JustFiends::OUT_LIGHT + i));
+			addChild(createLightCentered<SmallLight<YellowLight>>(mm2px(Vec(x + 6.6, outY)), module, JustFiends::OUT_LIGHT + i));
 		}
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(114.5, trigY)), module, JustFiends::POLY_TRIG_INPUT));
-		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(114.5, outY)), module, JustFiends::MIX_OUTPUT));
-		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(128.0, outY)), module, JustFiends::POLY_OUTPUT));
+		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(150.0, trigY)), module, JustFiends::POLY_TRIG_INPUT));
+		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(140.0, outY)), module, JustFiends::MIX_OUTPUT));
+		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(158.0, outY)), module, JustFiends::POLY_OUTPUT));
 	}
 
 	void appendContextMenu(Menu* menu) override {
