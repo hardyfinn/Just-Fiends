@@ -46,12 +46,13 @@ each sister, normalled from ALL. A display draws all three responses.
 
 ## Mangrave
 
-A formant oscillator: a square core fires a burst of a second wave every
-cycle. FORMANT sets where the bursts sit (a ratio of the pitch in CONSTANT
-WAVE, a fixed frequency in CONSTANT FORMANT), BARREL skews them, AIR sets their
-length and level (it is the VCA). STRIKE restarts the cycle and puffs air
-through. Linear through-zero FM. A scope shows the core, the bursts and their
-envelope.
+A formant oscillator after the Mangrove technical map, with the PPM ("Patch
+Programmable Mangrove") section built into the panel. A triangle core fires an
+impulse (an AR envelope) on each cycle; FORMANT sets its length (long impulses
+skip cycles: undertones), BARREL its rise/fall, AIR a VCA plus overdrive.
+CONSTANT WAVE / FORMANT, SYNC, linear through-zero FM with FM INDEX. PPM adds an
+IMPULSE / SYNC / CYCLE switch, TRIGGER and TO AIR inputs, and SINE, SAW, PWM and
+HOLLOW outputs.
 
 ## Building
 

@@ -1,7 +1,7 @@
 {
   "slug": "JustFiends",
   "name": "Just Fiends",
-  "version": "2.3.0",
+  "version": "2.4.0",
   "license": "GPL-3.0-or-later",
   "brand": "Haer",
   "author": "Haer",
@@ -40,7 +40,7 @@
     {
       "slug": "Mangrave",
       "name": "Mangrave",
-      "description": "A formant oscillator: a square core fires bursts of a second wave, shaped by Formant, Barrel and Air. A scope shows the core, the bursts and their envelope",
+      "description": "Formant oscillator after the Mangrove technical map, with the PPM section built in: impulse, sync and cycle modes, trigger, to-air, sine, saw, PWM and hollow outputs. A scope shows the core and the impulses",
       "tags": [
         "Oscillator",
         "VCO",

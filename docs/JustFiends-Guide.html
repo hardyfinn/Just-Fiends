@@ -243,31 +243,53 @@ p.setAttribute('stroke','var('+cols[n-1]+')');s.appendChild(p);}})();
 </table></div>
 <p>The display draws the response of all three (orange LOW, green CENTRE, blue HIGH) from 20 Hz to 20 kHz, with their frequencies underneath. Everything is polyphonic up to 16 channels.</p>
 
-<h2 id="mangrave">Mangrave: a formant oscillator</h2>
-<p>Mangrave has a plain square-wave <b>core</b>. Every cycle of the core fires a puff of air: a short burst of a second wave at the <b>FORMANT</b> frequency, which restarts each cycle and dies away. The scope shows it: grey is the core, amber is the burst's envelope, green is what you hear at FORMANT out.</p>
+<h2 id="mangrave">Mangrave: a formant oscillator with PPM built in</h2>
+<p>Mangrave follows the Mangrove technical map. A triangle <b>core</b> oscillator gives the SQUARE output. Every rising edge of the core fires the <b>impulse</b>: a little envelope that rises to the top and falls to the bottom, then rests until the next trigger. The impulse goes through <b>AIR</b> (a VCA and then an overdrive) to the FORMANT output. There is no filter: the tone comes from the impulse's length and shape.</p>
+<p>The scope shows it: grey is the core, amber marks when the impulse is rising, green is the FORMANT output.</p>
 <div class="wrap"><table>
 <tr><th>Control</th><th>What it does</th><th>Try</th></tr>
-<tr><td><b>PITCH</b>, FINE + V/OCT</td><td>The core pitch, middle C at noon. FINE is plus or minus a semitone.</td><td></td></tr>
-<tr><td><b>FM</b> + FM in</td><td>Linear, through-zero FM. Deep settings push the pitch through zero, which gives clangy, bell-like tones.</td><td>Patch the SQUARE of a second Mangrave here.</td></tr>
-<tr><td><b>FORMANT</b> + CV, amt</td><td>Where the bursts sit in the spectrum. What it means depends on CONSTANT (below). The CV is 1 V/oct at full amount.</td><td>Sweep it slowly: a wah or a vowel.</td></tr>
-<tr><td><b>BARREL</b> + CV, amt</td><td>Skews the burst: anticlockwise a rising ramp (bright, buzzy), noon a triangle (round), clockwise a falling ramp.</td><td></td></tr>
-<tr><td><b>AIR</b> + CV, amt</td><td>How much air blows through. At 0 it is silent; low is thin and reedy; full is a steady, rich tone. It is the built-in VCA, so patch an envelope (from Just Fiends) into AIR CV.</td><td>Air at 0 with an envelope into the CV.</td></tr>
-<tr><td><b>CONSTANT</b></td><td>WAVE: the formant is a fixed ratio of the pitch, so the tone colour stays the same up and down the keyboard. FORMANT: the formant stays at one frequency whatever note you play, like a voice saying one vowel.</td><td>Play a bassline in each and listen to the colour.</td></tr>
-<tr><td><b>STRIKE</b> + button</td><td>A trigger restarts the cycle and puffs air through, even with AIR closed (turn that off in the right-click menu if you only want the reset).</td><td>Clock it for plucked tones.</td></tr>
-<tr><td>Outputs SQUARE, FORMANT</td><td>The plain core, and the formant voice.</td><td></td></tr>
+<tr><td><b>PITCH</b>, FINE + V/OCT</td><td>The core pitch, middle C at noon. FINE covers one octave.</td><td></td></tr>
+<tr><td><b>FM</b> + FM in, FM INDEX in</td><td>Linear, through-zero FM. The FM knob is the depth; the FM INDEX jack (0 to 5 V) multiplies it, so an envelope there gives FM that blooms and fades.</td><td>The SINE of a second Mangrave into FM.</td></tr>
+<tr><td><b>FORMANT</b> + CV, amt</td><td>The impulse length. Clockwise = shorter: brighter, with rests between impulses (think of it as a high pass). Anticlockwise = longer. Once an impulse lasts longer than a core cycle it has to skip cycles, and the pitch drops to 1/2, 1/3, 1/4: the <b>undertone series</b>. The display tells you when that happens.</td><td>CONSTANT WAVE, BARREL fully anticlockwise, then turn FORMANT slowly down from noon.</td></tr>
+<tr><td><b>BARREL</b> + CV, amt</td><td>The impulse's rise against its fall. Anticlockwise: all rise, a ramp. Noon: a triangle, the softest. Clockwise: all fall, a saw.</td><td></td></tr>
+<tr><td><b>AIR</b> + CV, amt</td><td>The VCA and overdrive. Nothing at 0, clean and soft low down (nearly a sine around 9 o'clock), 10 V peak to peak at noon, squared off and full of odd harmonics at the top.</td><td>An envelope from Just Fiends into AIR CV.</td></tr>
+<tr><td><b>CONSTANT</b></td><td>WAVE: the impulse length follows the pitch, so the waveform keeps its shape up and down the keyboard. FORMANT: the impulse length stays put, so one region of the spectrum is always emphasised, like a wind instrument.</td><td>Play the same line in each.</td></tr>
+<tr><td><b>SYNC</b> in</td><td>Resets the core. Sync to a slower or faster oscillator and sweep PITCH for overtones.</td><td></td></tr>
+<tr><td>Outputs SQUARE, FORMANT</td><td>The core, and the impulses through AIR.</td><td></td></tr>
 </table></div>
+
+<h3>The PPM section</h3>
+<p>Newer Mangroves come with PPM, a 2 HP expander that stands for "Patch Programmable Mangrove". It opens up the inner workings. Here it is built into the right-hand side of the same panel.</p>
+<div class="wrap"><table>
+<tr><th>Part</th><th>What it does</th></tr>
+<tr><td><b>Mode switch</b></td><td><b>IMPULSE</b>: classic Mangrove, the core fires each impulse. <b>SYNC</b>: the impulse cycles on its own and the core soft-syncs it (a restart only while it is falling), which gives an inverted Mangrove sound. <b>CYCLE</b>: the impulse is a second free-running oscillator. FORMANT sets its pitch and BARREL its shape, and only the TRIGGER jack syncs it.</td></tr>
+<tr><td><b>TRIGGER</b> in + FIRE</td><td>Replaces the core as what fires the impulse. Clock it with FORMANT low and CONSTANT FORMANT for fast envelopes, or feed it another oscillator to use Mangrave as a waveshaper. FIRE does it by hand.</td></tr>
+<tr><td><b>TO AIR</b> in</td><td>Adds any signal into the AIR stage next to the impulse, so AIR's VCA and overdrive shape it too.</td></tr>
+<tr><td><b>SINE</b>, <b>SAW</b></td><td>The core as a sine and a saw, alongside SQUARE. SINE is the one for through-zero FM.</td></tr>
+<tr><td><b>PWM</b></td><td>High while the impulse is rising. BARREL sweeps its width.</td></tr>
+<tr><td><b>HOLLOW</b></td><td>Flips on every impulse, so it is a square at half the impulse rate. It follows FORMANT's undertones, with odd harmonics like a bass clarinet. Layer it under FORMANT.</td></tr>
+</table></div>
+
+<h3>PPM patch ideas (after the PPM manual)</h3>
+<ul>
+<li><b>Quadricycle:</b> HOLLOW &rarr; Mangrave's own V/OCT, CONSTANT FORMANT, PPM CYCLE, FORMANT at minimum. It steps through four tones by itself.</li>
+<li><b>Get complex:</b> FORMANT out &rarr; FM in, CONSTANT FORMANT, PPM CYCLE. Bell-like through-zero FM.</li>
+<li><b>Detune party:</b> SINE or SAW &rarr; TO AIR, with the impulse (PPM CYCLE) tuned near the core. Slow beating between the two.</li>
+<li><b>Over/under:</b> PWM &rarr; BARREL CV in PPM CYCLE. Turning FORMANT up gives overtones, down gives undertones.</li>
+<li><b>Waveshaper:</b> another oscillator (or another Mangrave's FORMANT) &rarr; TRIGGER in PPM IMPULSE, for stacked undertones.</li>
+</ul>
 
 <h2 id="trio">The trio together: three starter patches</h2>
 <div class="card">
 <h3>8. Talking bass</h3>
 <span class="tag">MANGRAVE</span><span class="tag">WEIRD SISTERS</span>
 <ol class="cables">
-<li>Sequencer pitch &rarr; Mangrave <b>V/OCT</b>; gates &rarr; Mangrave <b>STRIKE</b>.</li>
+<li>Sequencer pitch &rarr; Mangrave <b>V/OCT</b>; a Just Fiends envelope (Shape / Transient, fired by the gates) &rarr; Mangrave <b>AIR</b> CV.</li>
 <li>Mangrave <b>FORMANT</b> out &rarr; Weird Sisters <b>ALL</b> in.</li>
 <li>Weird Sisters <b>ALL</b> out &rarr; mixer.</li>
 <li>A slow LFO (Just Fiends 4N in Shape / Cycle) &rarr; Weird Sisters <b>FREQ V/OCT</b>.</li>
 </ol>
-<p><b>Settings:</b> Mangrave PITCH 10 o'clock, CONSTANT FORMANT, FORMANT noon, BARREL 10 o'clock, AIR 9 o'clock. Weird Sisters FORMANT mode, SPAN 11 o'clock, QUALITY 1 o'clock.</p>
+<p><b>Settings:</b> Mangrave PITCH 10 o'clock, CONSTANT FORMANT, FORMANT noon, BARREL 10 o'clock, AIR at 0 (the envelope opens it). Weird Sisters FORMANT mode, SPAN 11 o'clock, QUALITY 1 o'clock.</p>
 <p><b>Variations:</b> switch Mangrave to CONSTANT WAVE for a steadier, more synth-like bass. Turn QUALITY anticlockwise for hollow, phased vowels.</p>
 </div>
 <div class="card">
@@ -293,9 +315,9 @@ p.setAttribute('stroke','var('+cols[n-1]+')');s.appendChild(p);}})();
 
 <h3>Weird Sisters and Mangrave on the hardware</h3>
 <ul>
-<li>The real Three Sisters and Mangrove in your case have the same main controls (FREQ, SPAN, QUALITY, MODE; PITCH, FORMANT, BARREL, AIR, CONSTANT, STRIKE), so these patches carry over as starting points.</li>
-<li>Added for learning: the displays, tooltips, CV amount trimmers, the STRIKE button, polyphony, and Mangrave's right-click option to strike without puffing air.</li>
-<li>These are this plugin's own models built from the hardware's ideas, not circuit copies. In particular, Weird Sisters' formant mode and anti-resonance, and the exact shape and decay of Mangrave's bursts, are interpretations.</li>
+<li>The real Three Sisters and Mangrove in your case have the same main controls (FREQ, SPAN, QUALITY, MODE; PITCH, FINE, FM, FORMANT, BARREL, AIR, CONSTANT, SYNC, plus the PPM switch and jacks), so these patches carry over as starting points.</li>
+<li>Added for learning: the displays, tooltips, CV amount trimmers, the FIRE button, and polyphony. On the hardware, FM INDEX is a CV input only; here there is also a knob.</li>
+<li>These are this plugin's own models built from the hardware's ideas, not circuit copies. In particular, Weird Sisters' formant mode and anti-resonance, and Mangrave's overdrive curve and PPM details (the exact sync behaviour and the HOLLOW divider), are interpretations. Mangrave's core and impulse follow the Mangrove technical map closely.</li>
 </ul>
 </main>
 </body>
