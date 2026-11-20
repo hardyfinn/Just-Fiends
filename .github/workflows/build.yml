@@ -27,7 +27,7 @@ jobs:
           unzip -q sdk.zip -d "$RUNNER_TEMP"
       - name: Test the engine
         run: |
-          c++ -std=c++11 -O2 -o test/engine_test test/engine_test.cpp && test/engine_test
+          for t in engine sisters grove; do c++ -std=c++11 -O2 -o test/${t}_test test/${t}_test.cpp && test/${t}_test || exit 1; done
       - name: Build
         run: make dist RACK_DIR="$RUNNER_TEMP/Rack-SDK" -j3
       - uses: actions/upload-artifact@v4

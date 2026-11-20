@@ -4,3 +4,6 @@ plugin.dylib
 plugin.so
 plugin.dll
 test/engine_test
+test/sisters_test
+test/grove_test
+__pycache__/

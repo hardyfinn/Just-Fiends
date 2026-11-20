@@ -37,11 +37,12 @@ svg{max-width:100%;height:auto}
 <body>
 <main>
 <h1>JUST FIENDS</h1>
-<p class="sub">Six linked slopes for VCV Rack, by Haer. A learning twin of the six-channel function generator in your rig.</p>
+<p class="sub">Three learning twins of the Mannequins modules in your rig, by Haer: <b>Just Fiends</b> (six linked slopes), <b>Weird Sisters</b> (three linked filters) and <b>Mangrave</b> (a formant oscillator).</p>
 
 <nav>
 <a href="#idea">The idea</a><a href="#panel">Panel tour</a><a href="#modes">Modes</a><a href="#run">Run modes</a>
 <a href="#extras">Poly pitch and Geode</a><a href="#patches">Starter patches</a><a href="#rig">Your rig</a><a href="#differences">Differences</a>
+<br><a href="#sisters">Weird Sisters</a><a href="#mangrave">Mangrave</a><a href="#trio">The trio together</a>
 </nav>
 
 <h2 id="idea">The idea in one minute</h2>
@@ -227,6 +228,74 @@ p.setAttribute('stroke','var('+cols[n-1]+')');s.appendChild(p);}})();
 <li>The six Run modes follow the hardware's ideas and names, but the details are this module's own versions, not exact copies. In particular, Spill (timed bursts) and Floom (a ring of FM) are interpretations.</li>
 <li>MIX here is the highest slope in Shape range and a soft-clipped sum in Sound range.</li>
 <li>Geode is driven by a clock at IDENTITY and INTONE, not by Teletype commands.</li>
+</ul>
+
+<h2 id="sisters">Weird Sisters: three linked filters</h2>
+<p>Weird Sisters is <b>one filter copied three times</b>, the same idea as Just Fiends. All three share FREQ and QUALITY. <b>SPAN</b> pushes LOW below and HIGH above the centre, by the same number of octaves each way.</p>
+<div class="wrap"><table>
+<tr><th>Control</th><th>What it does</th><th>Try</th></tr>
+<tr><td><b>FREQ</b> + V/OCT, FM</td><td>The centre frequency, 20 Hz to 20 kHz (about 640 Hz at noon). V/OCT is 1 V/oct, so it tracks pitch when it rings. The FM knob is an attenuverter in octaves per volt.</td><td>Sweep it with the display open.</td></tr>
+<tr><td><b>SPAN</b> + CV, amt</td><td>How far LOW and HIGH sit from the centre: 0 to 4 octaves each way. Fully anticlockwise, all three meet at FREQ.</td><td>Around 10 o'clock for a three-band split.</td></tr>
+<tr><td><b>QUALITY</b> + CV, amt</td><td>Noon is flat. Clockwise adds resonance, and fully clockwise the sisters sing on their own (self-oscillation). Anticlockwise is <b>anti-resonance</b>: CENTRE turns into a notch and the edges get dips.</td><td>Full anticlockwise on CENTRE for a phaser-like hollow.</td></tr>
+<tr><td><b>MODE</b></td><td>CROSSOVER: LOW is a low pass, CENTRE a band pass, HIGH a high pass, so the three outputs split the sound into bands that add back up at ALL. FORMANT: all three are band passes, which makes vowel-like peaks.</td><td></td></tr>
+<tr><td>Inputs LOW, CENTRE, HIGH, ALL</td><td>Each sister has its own input. ALL feeds every sister with nothing patched, so one cable into ALL is the usual start.</td><td>Three different sounds into the three inputs: one filter bank, three voices.</td></tr>
+<tr><td>Outputs LOW, CENTRE, HIGH, ALL</td><td>Each sister, and the three summed.</td><td></td></tr>
+</table></div>
+<p>The display draws the response of all three (orange LOW, green CENTRE, blue HIGH) from 20 Hz to 20 kHz, with their frequencies underneath. Everything is polyphonic up to 16 channels.</p>
+
+<h2 id="mangrave">Mangrave: a formant oscillator</h2>
+<p>Mangrave has a plain square-wave <b>core</b>. Every cycle of the core fires a puff of air: a short burst of a second wave at the <b>FORMANT</b> frequency, which restarts each cycle and dies away. The scope shows it: grey is the core, amber is the burst's envelope, green is what you hear at FORMANT out.</p>
+<div class="wrap"><table>
+<tr><th>Control</th><th>What it does</th><th>Try</th></tr>
+<tr><td><b>PITCH</b>, FINE + V/OCT</td><td>The core pitch, middle C at noon. FINE is plus or minus a semitone.</td><td></td></tr>
+<tr><td><b>FM</b> + FM in</td><td>Linear, through-zero FM. Deep settings push the pitch through zero, which gives clangy, bell-like tones.</td><td>Patch the SQUARE of a second Mangrave here.</td></tr>
+<tr><td><b>FORMANT</b> + CV, amt</td><td>Where the bursts sit in the spectrum. What it means depends on CONSTANT (below). The CV is 1 V/oct at full amount.</td><td>Sweep it slowly: a wah or a vowel.</td></tr>
+<tr><td><b>BARREL</b> + CV, amt</td><td>Skews the burst: anticlockwise a rising ramp (bright, buzzy), noon a triangle (round), clockwise a falling ramp.</td><td></td></tr>
+<tr><td><b>AIR</b> + CV, amt</td><td>How much air blows through. At 0 it is silent; low is thin and reedy; full is a steady, rich tone. It is the built-in VCA, so patch an envelope (from Just Fiends) into AIR CV.</td><td>Air at 0 with an envelope into the CV.</td></tr>
+<tr><td><b>CONSTANT</b></td><td>WAVE: the formant is a fixed ratio of the pitch, so the tone colour stays the same up and down the keyboard. FORMANT: the formant stays at one frequency whatever note you play, like a voice saying one vowel.</td><td>Play a bassline in each and listen to the colour.</td></tr>
+<tr><td><b>STRIKE</b> + button</td><td>A trigger restarts the cycle and puffs air through, even with AIR closed (turn that off in the right-click menu if you only want the reset).</td><td>Clock it for plucked tones.</td></tr>
+<tr><td>Outputs SQUARE, FORMANT</td><td>The plain core, and the formant voice.</td><td></td></tr>
+</table></div>
+
+<h2 id="trio">The trio together: three starter patches</h2>
+<div class="card">
+<h3>8. Talking bass</h3>
+<span class="tag">MANGRAVE</span><span class="tag">WEIRD SISTERS</span>
+<ol class="cables">
+<li>Sequencer pitch &rarr; Mangrave <b>V/OCT</b>; gates &rarr; Mangrave <b>STRIKE</b>.</li>
+<li>Mangrave <b>FORMANT</b> out &rarr; Weird Sisters <b>ALL</b> in.</li>
+<li>Weird Sisters <b>ALL</b> out &rarr; mixer.</li>
+<li>A slow LFO (Just Fiends 4N in Shape / Cycle) &rarr; Weird Sisters <b>FREQ V/OCT</b>.</li>
+</ol>
+<p><b>Settings:</b> Mangrave PITCH 10 o'clock, CONSTANT FORMANT, FORMANT noon, BARREL 10 o'clock, AIR 9 o'clock. Weird Sisters FORMANT mode, SPAN 11 o'clock, QUALITY 1 o'clock.</p>
+<p><b>Variations:</b> switch Mangrave to CONSTANT WAVE for a steadier, more synth-like bass. Turn QUALITY anticlockwise for hollow, phased vowels.</p>
+</div>
+<div class="card">
+<h3>9. Three-band Detroit chord</h3>
+<span class="tag">JUST FIENDS</span><span class="tag">WEIRD SISTERS</span>
+<ol class="cables">
+<li>Just Fiends chord (patch 1: Sound / Sustain, INTONE fully clockwise) <b>MIX</b> &rarr; Weird Sisters <b>ALL</b> in.</li>
+<li>Weird Sisters <b>LOW</b>, <b>CENTRE</b>, <b>HIGH</b> &rarr; three mixer channels, panned left, centre, right.</li>
+<li>Just Fiends in a second instance, Shape / Cycle, slow: 2N &rarr; Weird Sisters SPAN CV, 3N &rarr; FREQ V/OCT.</li>
+</ol>
+<p><b>Settings:</b> Weird Sisters CROSSOVER, SPAN 10 o'clock, QUALITY 2 o'clock. The chord's harmonics move between the three bands and across the stereo field as the LFOs drift.</p>
+</div>
+<div class="card">
+<h3>10. Singing sisters</h3>
+<span class="tag">WEIRD SISTERS</span>
+<ol class="cables">
+<li>Nothing into the audio inputs. Sequencer pitch &rarr; <b>FREQ V/OCT</b>.</li>
+<li>A short trigger or clicks (Just Fiends Sound / Transient) &rarr; Weird Sisters <b>ALL</b> in to ping the filters.</li>
+<li>LOW, CENTRE, HIGH &rarr; mixer.</li>
+</ol>
+<p><b>Settings:</b> QUALITY fully clockwise (they sing on their own) or 3 o'clock (they ring after each ping, like tuned percussion). SPAN sets the interval: a little past 9 o'clock (one octave, shown on the display) puts LOW and HIGH an octave each side, so you get three octaves of the same note. The display shows the three peaks.</p>
+</div>
+
+<h3>Weird Sisters and Mangrave on the hardware</h3>
+<ul>
+<li>The real Three Sisters and Mangrove in your case have the same main controls (FREQ, SPAN, QUALITY, MODE; PITCH, FORMANT, BARREL, AIR, CONSTANT, STRIKE), so these patches carry over as starting points.</li>
+<li>Added for learning: the displays, tooltips, CV amount trimmers, the STRIKE button, polyphony, and Mangrave's right-click option to strike without puffing air.</li>
+<li>These are this plugin's own models built from the hardware's ideas, not circuit copies. In particular, Weird Sisters' formant mode and anti-resonance, and the exact shape and decay of Mangrave's bursts, are interpretations.</li>
 </ul>
 </main>
 </body>

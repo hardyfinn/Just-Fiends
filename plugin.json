@@ -1,7 +1,7 @@
 {
   "slug": "JustFiends",
   "name": "Just Fiends",
-  "version": "2.2.0",
+  "version": "2.3.0",
   "license": "GPL-3.0-or-later",
   "brand": "Haer",
   "author": "Haer",
@@ -17,7 +17,35 @@
       "slug": "JustFiends",
       "name": "Just Fiends",
       "description": "Six linked slopes: envelopes, LFOs and oscillators that share one Time, spread by Intone. Every mode and Run mode is labelled, and a display shows all six shapes",
-      "tags": ["Envelope generator", "Function generator", "LFO", "Oscillator", "Polyphonic", "Slew limiter", "Clock modulator"]
+      "tags": [
+        "Envelope generator",
+        "Function generator",
+        "LFO",
+        "Oscillator",
+        "Polyphonic",
+        "Slew limiter",
+        "Clock modulator"
+      ]
+    },
+    {
+      "slug": "WeirdSisters",
+      "name": "Weird Sisters",
+      "description": "Three linked filters (low, centre, high) around one frequency: crossover or formant, with resonance or anti-resonance. A display draws all three responses",
+      "tags": [
+        "Filter",
+        "Polyphonic",
+        "Equalizer"
+      ]
+    },
+    {
+      "slug": "Mangrave",
+      "name": "Mangrave",
+      "description": "A formant oscillator: a square core fires bursts of a second wave, shaped by Formant, Barrel and Air. A scope shows the core, the bursts and their envelope",
+      "tags": [
+        "Oscillator",
+        "VCO",
+        "Polyphonic"
+      ]
     }
   ]
 }

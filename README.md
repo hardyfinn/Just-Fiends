@@ -1,5 +1,11 @@
 # Just Fiends
 
+Three VCV Rack modules in one plugin: **Just Fiends** (six linked slopes),
+**Weird Sisters** (three linked filters) and **Mangrave** (a formant
+oscillator). The guide is in docs/JustFiends-Guide.html.
+
+## Just Fiends
+
 A VCV Rack module of six linked slope generators: envelopes, LFOs and
 oscillators that share one Time control, spread across six channels by Intone.
 It is built for learning: every mode is labelled on the panel, the display draws
@@ -31,12 +37,28 @@ Bold = with Run on. Right-click for **Poly pitch** (each channel plays its own
 channel of the TIME input, like a six-voice synth), **Geode** (IDENTITY becomes
 a clock and the six channels play locked rhythms) and trigger velocity.
 
+## Weird Sisters
+
+Three filters around one FREQ (1 V/oct). SPAN moves LOW down and HIGH up,
+QUALITY goes from anti-resonance (notch) through flat to self-oscillation,
+MODE is crossover (LP / BP / HP) or formant (three band passes). Inputs for
+each sister, normalled from ALL. A display draws all three responses.
+
+## Mangrave
+
+A formant oscillator: a square core fires a burst of a second wave every
+cycle. FORMANT sets where the bursts sit (a ratio of the pitch in CONSTANT
+WAVE, a fixed frequency in CONSTANT FORMANT), BARREL skews them, AIR sets their
+length and level (it is the VCA). STRIKE restarts the cycle and puffs air
+through. Linear through-zero FM. A scope shows the core, the bursts and their
+envelope.
+
 ## Building
 
 ```
 make RACK_DIR=/path/to/Rack-SDK dist
-c++ -std=c++11 -O2 -o test/engine_test test/engine_test.cpp && test/engine_test
-pip install fonttools && python3 res/make_panel.py   # redraws the panel
+for t in engine sisters grove; do c++ -std=c++11 -O2 -o test/${t}_test test/${t}_test.cpp && test/${t}_test; done
+pip install fonttools && python3 res/make_panel.py && python3 res/make_panel_sisters.py && python3 res/make_panel_mangrave.py
 ```
 
 License: GPL-3.0-or-later.
