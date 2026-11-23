@@ -133,7 +133,7 @@ labels = ["IDENTITY", "2N", "3N", "4N", "5N", "6N"]
 for i, lab in enumerate(labels):
     add(text(lab, TX0 + TDX * i + (1.6 if i == 0 else 0.0), 105.4, 2.9, FONT_BOLD, CH[i], spacing=0.04))
 add(text("POLY TRIG", 150.0, 105.4, 2.9, FONT_BOLD, INK))
-add(text("each trigger also feeds the unpatched jacks to its right  \u00b7  buttons fire by hand", 66.0, 117.4, 2.1, FONT_MED, SOFT))
+add(text("each trigger also feeds the unpatched jacks to its left  \u00b7  buttons fire by hand", 66.0, 117.4, 2.1, FONT_MED, SOFT))
 add(f'<rect x="3.2" y="119.0" width="{W - 6.4}" height="8.9" rx="1.2" fill="{OUTBOX}"/>')
 add(text("MIX", 140.0, 117.6, 2.9, FONT_BOLD, CH[0]))
 add(text("POLY", 158.0, 117.6, 2.9, FONT_BOLD, INK))

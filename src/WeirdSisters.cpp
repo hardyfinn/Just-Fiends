@@ -15,11 +15,11 @@ static std::string hzStr(double f) {
 }
 
 static std::string qualityWords(float q) {
-	if (q < -0.6f) return "anti-resonant: CENTRE is a notch, the edges dip";
-	if (q < -0.05f) return "a little anti-resonance (soft dips)";
+	if (q < -0.6f) return "mostly dry: the whole sound back in, with notches at the cutoffs";
+	if (q < -0.05f) return "a blend of filtered and dry";
 	if (q < 0.05f) return "flat (no resonance)";
-	if (q < 0.6f) return "resonant";
-	if (q < 0.95f) return "very resonant (ringing)";
+	if (q < 0.3f) return "resonant";
+	if (q < 0.45f) return "very resonant (ringing, good for pinging)";
 	return "self-oscillating: the filters sing on their own";
 }
 
@@ -44,20 +44,20 @@ struct WeirdSisters : Module {
 	WeirdSisters() {
 		config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
 		configParam<SisQuantity>(FREQ_PARAM, 0.f, 1.f, 0.5f, "Freq", " Hz", std::pow(2.f, 10.f), 20.f);
-		configParam<SisQuantity>(SPAN_PARAM, 0.f, 1.f, 0.3f, "Span", " octaves", 0.f, 4.f);
+		configParam<SisQuantity>(SPAN_PARAM, 0.f, 1.f, 0.5f, "Span", " octaves", 0.f, 5.7f, -1.71f);
 		configParam<SisQuantity>(QUALITY_PARAM, -1.f, 1.f, 0.f, "Quality");
 		configParam(FM_PARAM, -1.f, 1.f, 0.f, "FM amount (octaves per volt)", "%", 0.f, 100.f);
 		configParam(SPAN_ATT_PARAM, -1.f, 1.f, 1.f, "Span CV amount", "%", 0.f, 100.f);
 		configParam(QUALITY_ATT_PARAM, -1.f, 1.f, 1.f, "Quality CV amount", "%", 0.f, 100.f);
-		configSwitch(MODE_PARAM, 0.f, 1.f, 0.f, "Mode", {"Crossover: low pass / band pass / high pass", "Formant: three band passes"});
+		configSwitch(MODE_PARAM, 0.f, 1.f, 0.f, "Mode", {"Crossover: low pass / the band between / high pass", "Formant: three band passes"});
 		configInput(VOCT_INPUT, "Freq (1 V/oct)");
 		configInput(FM_INPUT, "FM");
 		configInput(SPAN_INPUT, "Span CV (1 V = 1 octave at full amount)");
 		configInput(QUALITY_INPUT, "Quality CV (+-5 V)");
-		configInput(LOW_INPUT, "LOW sister in (unpatched: from ALL)");
-		configInput(CENTRE_INPUT, "CENTRE sister in (unpatched: from ALL)");
-		configInput(HIGH_INPUT, "HIGH sister in (unpatched: from ALL)");
-		configInput(ALL_INPUT, "ALL in: feeds every sister without its own input");
+		configInput(LOW_INPUT, "LOW sister in (ALL in is added to it)");
+		configInput(CENTRE_INPUT, "CENTRE sister in (ALL in is added to it)");
+		configInput(HIGH_INPUT, "HIGH sister in (ALL in is added to it)");
+		configInput(ALL_INPUT, "ALL in: added to every sister's own input");
 		configOutput(LOW_OUTPUT, "LOW");
 		configOutput(CENTRE_OUTPUT, "CENTRE");
 		configOutput(HIGH_OUTPUT, "HIGH");
@@ -70,16 +70,16 @@ struct WeirdSisters : Module {
 		};
 		q(SPAN_PARAM)->describe = [=]() {
 			double so = spanOctaves(shown.span, shown.spanCv);
-			return string::f("How far LOW sits below and HIGH sits above the centre: now %.1f octaves each way. Fully anticlockwise all three meet at FREQ.", so);
+			return string::f("How far LOW's cutoff sits below FREQ and HIGH's above: now %+.1f octaves. At about 10 o'clock they meet; below that they cross, and in crossover mode CENTRE closes like a VCA.", so);
 		};
 		q(QUALITY_PARAM)->describe = [=]() {
-			return "Noon is flat. Clockwise adds resonance up to self-oscillation. Anticlockwise is anti-resonance: CENTRE becomes a notch. Now: " + qualityWords(shown.quality) + ".";
+			return "Noon is flat. Clockwise adds resonance; from about 3 o'clock the sisters sing on their own. Anticlockwise mixes the filtered-out sound back in (dry/wet), with notches at the cutoffs. Now: " + qualityWords(shown.quality) + ".";
 		};
 	}
 
 	void process(const ProcessArgs& args) override {
 		int ch = 1;
-		for (int i : {VOCT_INPUT, LOW_INPUT, CENTRE_INPUT, HIGH_INPUT, ALL_INPUT}) ch = std::max(ch, inputs[i].getChannels());
+		for (int i : {VOCT_INPUT, FM_INPUT, SPAN_INPUT, QUALITY_INPUT, LOW_INPUT, CENTRE_INPUT, HIGH_INPUT, ALL_INPUT}) ch = std::max(ch, inputs[i].getChannels());
 		channels = ch;
 		Params p;
 		p.freqKnob = params[FREQ_PARAM].getValue();
@@ -93,9 +93,10 @@ struct WeirdSisters : Module {
 			p.spanCv = inputs[SPAN_INPUT].getPolyVoltage(c) * spanAtt;
 			p.quality = clamp(qK + inputs[QUALITY_INPUT].getPolyVoltage(c) / 5.f * qAtt, -1.f, 1.f);
 			float all = inputs[ALL_INPUT].getPolyVoltage(c);
-			float lo = inputs[LOW_INPUT].isConnected() ? inputs[LOW_INPUT].getPolyVoltage(c) : all;
-			float ce = inputs[CENTRE_INPUT].isConnected() ? inputs[CENTRE_INPUT].getPolyVoltage(c) : all;
-			float hi = inputs[HIGH_INPUT].isConnected() ? inputs[HIGH_INPUT].getPolyVoltage(c) : all;
+			// ALL in is added to each sister's own input, as on the hardware
+			float lo = inputs[LOW_INPUT].getPolyVoltage(c) + all;
+			float ce = inputs[CENTRE_INPUT].getPolyVoltage(c) + all;
+			float hi = inputs[HIGH_INPUT].getPolyVoltage(c) + all;
 			eng[c].process(p, lo, ce, hi, args.sampleRate);
 			for (int k = 0; k < 3; k++) outputs[LOW_OUTPUT + k].setVoltage(eng[c].out[k], c);
 			outputs[ALL_OUTPUT].setVoltage(eng[c].all, c);
@@ -171,6 +172,7 @@ struct SistersDisplay : Widget {
 		double f = knobHz(p.freqKnob, p.voct + p.fmOct);
 		double so = spanOctaves(p.span, p.spanCv);
 		double fc[3] = {f * std::pow(2.0, -so), f, f * std::pow(2.0, so)};
+		for (int t = 0; t < 3; t++) fc[t] = std::max(5.0, std::min(fc[t], 20000.0));
 		double k = std::max(0.02, dampK(p.quality));
 		double anti = p.quality < 0.f ? -p.quality : 0.0;
 		const int N = 160;
@@ -179,10 +181,12 @@ struct SistersDisplay : Widget {
 			for (int j = 0; j <= N; j++) {
 				double hz = 20.0 * std::pow(1000.0, j / (double) N);
 				double mag;
-				if (s < 3) mag = response(hz, std::min(fc[s], 20000.0), k, anti, p.mode == FORMANT ? 1 : s);
+				if (s < 3) mag = response(hz, fc, k, anti, s, p.mode);
 				else {
-					mag = 0.0;  // ALL: rough sum of magnitudes, enough to show the shape
-					for (int t = 0; t < 3; t++) mag += response(hz, std::min(fc[t], 20000.0), k, anti, p.mode == FORMANT ? 1 : t);
+					// ALL: the three summed with their phases, so cancellations show
+					std::complex<double> sum = 0.0;
+					for (int t = 0; t < 3; t++) sum += responseC(hz, fc, k, anti, t, p.mode);
+					mag = std::abs(sum);
 				}
 				double db = 20.0 * std::log10(std::max(1e-6, mag));
 				float x = xOf(hz), y = yOf(db);
@@ -197,7 +201,7 @@ struct SistersDisplay : Widget {
 		static const char* NAMES[3] = {"LOW", "CENTRE", "HIGH"};
 		float fy = H - pad - mm2px(1.6f);
 		for (int s = 0; s < 3; s++)
-			text(args, pad + (W - 2 * pad) * (s / 3.f), fy, string::f("%s %s", NAMES[s], hzStr(std::min(fc[s], 20000.0)).c_str()), S_COL[s],
+			text(args, pad + (W - 2 * pad) * (s / 3.f), fy, string::f("%s %s", NAMES[s], hzStr(fc[s]).c_str()), S_COL[s],
 				NVG_ALIGN_LEFT | NVG_ALIGN_MIDDLE, mm2px(2.3f));
 		if (module && module->channels > 1)
 			text(args, W - pad, fy, string::f("%d ch", module->channels), S_SOFT, NVG_ALIGN_RIGHT | NVG_ALIGN_MIDDLE, mm2px(2.0f));

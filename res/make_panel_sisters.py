@@ -34,7 +34,7 @@ for x in (52.0, 80.0):
 for x, lab in [(12.0, "V/OCT"), (30.0, "FM"), (52.0, "CV"), (80.0, "CV")]:
     add(text(lab, x, C + 7.1, JACK, FONT_BOLD, SOFT))
 add(f'<line x1="3" y1="98.6" x2="{W - 3}" y2="98.6" stroke="{SOFT}" stroke-width="0.25" opacity="0.5"/>')
-add(text("ALL in feeds every sister with nothing patched", 58.0, 101.9, 2.1, FONT_MED, SOFT))
+add(text("ALL in is added to every sister's own input", 58.0, 101.9, 2.1, FONT_MED, SOFT))
 add(text("IN", 7.6, 107.0, HINT, FONT_BOLD, SOFT))
 add(f'<rect x="3.2" y="115.6" width="{W - 6.4:.2f}" height="12.3" rx="1.2" fill="{OUTBOX}"/>')
 for x, lab, col in [(20.0, "LOW", LOW), (44.0, "CENTRE", CEN), (68.0, "HIGH", HIGH), (96.0, "ALL", INK)]:

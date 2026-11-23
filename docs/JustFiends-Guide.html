@@ -71,13 +71,13 @@ p.setAttribute('stroke','var('+cols[n-1]+')');s.appendChild(p);}})();
 <tr><td><b>INTONE</b> + CV, amt</td><td>Spreads the six channels (see above). The amt trimmer scales the CV and can invert it.</td><td>Start at noon, then turn clockwise a little.</td></tr>
 <tr><td><b>RAMP</b> + CV, amt</td><td>Balance of rise and fall. Anticlockwise: instant rise, long fall (pluck, saw down). Clockwise: long rise, instant fall (swell, saw up). Noon: triangle.</td><td>Slightly anticlockwise for drums.</td></tr>
 <tr><td><b>CURVE</b> + CV, amt</td><td>Bends the slope: rectangle (gate or square), logarithmic, linear (noon), exponential, sine.</td><td>Between noon and 2 o'clock for punchy envelopes.</td></tr>
-<tr><td><b>FM</b> + FM IN</td><td>Exponential FM of TIME, in octaves per volt. Anticlockwise inverts it.</td><td>Small amounts for vibrato or drunk LFOs.</td></tr>
+<tr><td><b>FM</b> + FM IN</td><td>Linear, through-zero FM from the FM jack. Noon: none. Clockwise: all six channels equally, like moving TIME. Anticlockwise: INTONE style, 6N moves most and IDENTITY not at all, which keeps the bass solid. Shape range passes DC (a steady voltage shifts the speed); Sound range blocks it.</td><td>Another oscillator into FM IN in Sound range, knob anticlockwise for FM bass.</td></tr>
 <tr><td><b>RANGE</b></td><td>SHAPE: 0 to 8 V envelopes and LFOs. SOUND: &plusmn;5 V oscillators.</td><td></td></tr>
 <tr><td><b>MODE</b></td><td>TRANSIENT: one rise and fall per trigger. SUSTAIN: rise and hold while the gate is high. CYCLE: loop forever.</td><td></td></tr>
 <tr><td><b>RUN</b>, ON, RUN IN</td><td>ON (or patching RUN IN) unlocks a second behaviour for every Range and Mode pairing. The RUN knob adds to the jack, so you can learn the Run modes with no cable.</td><td>See <a href="#run">Run modes</a>.</td></tr>
-<tr><td>Triggers <span class="ch1">IDENTITY</span> to <span class="ch6">6N</span> + buttons</td><td>Each jack also feeds every unpatched jack to its right. One cable into IDENTITY fires all six; patch 4N too and IDENTITY now fires 1N to 3N while 4N fires 4N to 6N. The buttons do the same by hand.</td><td>Press the IDENTITY button with nothing patched.</td></tr>
+<tr><td>Triggers <span class="ch1">IDENTITY</span> to <span class="ch6">6N</span> + buttons</td><td>As on the hardware, each jack also feeds every unpatched jack to its <b>left</b>. One cable into 6N fires all six; patch 2N too and 6N now fires 3N to 6N while 2N fires IDENTITY and 2N. The buttons fire their own channel by hand.</td><td>Patch a clock into 6N and watch all six lanes.</td></tr>
 <tr><td>POLY TRIG</td><td>Six triggers or gates in one cable (channel 1 = IDENTITY). Combined with the single jacks.</td><td>Poly gates from a MIDI to CV module.</td></tr>
-<tr><td>Outputs, MIX, POLY</td><td>Six outputs. MIX: in Shape range the highest of the six (an analogue OR), in Sound range a soft-clipped sum. POLY carries all six in one cable.</td><td></td></tr>
+<tr><td>Outputs, MIX, POLY</td><td>Six outputs. MIX: in Shape range each channel is divided by its number (IDENTITY 8 V, 2N 4 V, 3N 2.67 V...) and the highest wins, which makes staircases from gates; in Sound range an equal mix, soft-limited to about 15 V peak to peak. POLY carries all six in one cable.</td><td></td></tr>
 </table></div>
 
 <h3>The display</h3>
@@ -91,20 +91,20 @@ p.setAttribute('stroke','var('+cols[n-1]+')');s.appendChild(p);}})();
 <h2 id="modes">The six modes</h2>
 <div class="wrap"><table>
 <tr><th></th><th>TRANSIENT</th><th>SUSTAIN</th><th>CYCLE</th></tr>
-<tr><th>SHAPE</th><td><b>Envelopes.</b> Each trigger fires one rise and fall. Triggers during the rise are ignored, so a fast clock gets divided naturally.</td><td><b>ASR.</b> Rises while the gate is high, holds at 8 V, falls when it goes low.</td><td><b>LFOs.</b> Free-running. A trigger resets that channel to the start.</td></tr>
-<tr><th>SOUND</th><td><b>Impulses.</b> Each trigger plays one cycle of the wave. Clocked fast you hear pitched buzz; slow you hear clicks and blips.</td><td><b>Gated oscillators.</b> Six voices that sound while their gate is high. Gate voltage sets the level (5 V = full).</td><td><b>Oscillators.</b> Six free-running oscillators. A trigger hard-syncs that channel.</td></tr>
+<tr><th>SHAPE</th><td><b>Envelopes.</b> Each trigger fires one rise and fall. Triggers are ignored until the slope has finished, so a fast clock gets divided naturally.</td><td><b>ASR.</b> Rises while the gate is high, holds at 8 V, falls when it goes low.</td><td><b>LFOs.</b> Free-running. A trigger resets that channel to the start.</td></tr>
+<tr><th>SOUND</th><td><b>Impulses.</b> Patch an audio-rate clock (another oscillator): each edge plays one impulse, resting at -5 V. Edges are ignored while it plays, so long impulses give undertones (pitch division).</td><td><b>Trapezoids.</b> Patch an audio-rate pulse: each slope rises while the pulse is high and falls when it is low, so its width follows the pulse. Mangrave PWM is a great source.</td><td><b>Oscillators.</b> Six free-running oscillators. A trigger hard-syncs that channel.</td></tr>
 </table></div>
 
 <h2 id="run">Run modes</h2>
 <p>Press <b>ON</b> (or patch RUN IN). The RUN voltage (knob plus jack) now has a job that depends on Range and Mode. The display names the mode in green.</p>
 <div class="wrap"><table>
 <tr><th>Name</th><th>Range / Mode</th><th>What RUN does</th></tr>
-<tr><td><b>SHIFT</b></td><td>Shape / Transient</td><td>Moves the retrigger point. 0 V: any trigger restarts the slope. 5 V: triggers are ignored until the slope has finished, so it becomes a clock divider whose division depends on TIME.</td></tr>
-<tr><td><b>STRATA</b></td><td>Shape / Sustain</td><td>Six slew limiters follow the RUN voltage (0 to 8 V), each at its own speed from INTONE. RAMP sets rise against fall speed. A low gate freezes that channel (track and hold); with nothing patched they all track.</td></tr>
-<tr><td><b>VOLLEY</b></td><td>Shape / Cycle</td><td>Each trigger fires a burst of cycles, then stops. RUN sets how many: 1 at 0 V up to 16 at 5 V. Ratchets.</td></tr>
-<tr><td><b>SPILL</b></td><td>Sound / Transient</td><td>Each trigger spills a burst of tone. RUN sets the length, from 5 ms (a click) to about 2 s.</td></tr>
-<tr><td><b>PLUME</b></td><td>Sound / Sustain</td><td>Triggers pluck the voices like a low pass gate: a fast attack, then a decay that also darkens the tone towards a sine. RUN sets the decay, from 20 ms to about 4 s. Trigger voltage sets how hard the pluck is.</td></tr>
-<tr><td><b>FLOOM</b></td><td>Sound / Cycle</td><td>Each voice frequency-modulates the next one in a ring (6N modulates IDENTITY). RUN sets the depth. Bright, metallic, chaotic at the top.</td></tr>
+<tr><td><b>SHIFT</b></td><td>Shape / Transient</td><td>Moves the retrigger point. -5 V: any trigger restarts. 0 V: triggers are taken once the rise is done. +5 V: only once the slope has finished (normal Transient). A retrigger restarts from 0 V.</td></tr>
+<tr><td><b>STRATA</b></td><td>Shape / Sustain</td><td>ARSR envelopes: a gate rises to the top, falls to a sustain level set by RUN (-5 V to +5 V gives 0 to 8 V, before CURVE), holds while the gate is high, then falls to 0. Hold a gate high in 6N and changing RUN makes six slew limiters, each at its own speed from INTONE.</td></tr>
+<tr><td><b>VOLLEY</b></td><td>Shape / Cycle</td><td>Each trigger fires a burst of envelopes, then stops. RUN sets how many, latched at the trigger: below -4 V none (choked), 1 at -4 V, 6 at 0 V, 36 at +5 V. Ratchets.</td></tr>
+<tr><td><b>SPILL</b></td><td>Sound / Transient</td><td>No cables needed: IDENTITY runs free and its end of cycle fires 2N to 6N as impulses. INTONE clockwise: impulse trains (like Mangrove FORMANT). Anticlockwise: subharmonics and split tones. RUN sets when a busy slope can be retriggered (-5 V any time, +5 V only when done).</td></tr>
+<tr><td><b>PLUME</b></td><td>Sound / Sustain</td><td>Six free-running oscillators through low pass gates. Triggers pluck them; gates hold them open like piano keys. RUN 0 V is a classic vactrol; positive is snappier; negative is longer and touch-sensitive (short triggers play softer).</td></tr>
+<tr><td><b>FLOOM</b></td><td>Sound / Cycle</td><td>Two-operator FM: each voice gets its own sine modulator. RUN sets the ratio (-5 V half, 0 V the same, +5 V double). The FM knob sets the depth (clockwise all equally, anticlockwise by channel number) and the FM jack becomes a depth CV.</td></tr>
 </table></div>
 
 <h2 id="extras">Poly pitch and Geode (right-click menu)</h2>
@@ -123,16 +123,16 @@ p.setAttribute('stroke','var('+cols[n-1]+')');s.appendChild(p);}})();
 
 <div class="card">
 <h3>1. Strings of Life chord pad</h3>
-<span class="tag">SOUND</span><span class="tag">SUSTAIN</span>
+<span class="tag">SOUND</span><span class="tag">SUSTAIN</span><span class="tag">RUN: PLUME</span>
 <p>One note becomes a Detroit string chord, because INTONE clockwise stacks harmonics.</p>
 <ol class="cables">
 <li>MIDI to CV (or your sequencer) <b>V/OCT</b> &rarr; Just Fiends <b>TIME V/OCT</b>.</li>
-<li>MIDI to CV <b>GATE</b> &rarr; <b>IDENTITY</b> (it normals to all six).</li>
+<li>MIDI to CV <b>GATE</b> &rarr; <b>6N</b> (it normals to all six).</li>
 <li>Just Fiends <b>MIX</b> &rarr; VCF in; VCF out &rarr; a reverb, then Audio out.</li>
 <li>LFO (0.05 Hz, sine) &rarr; Just Fiends <b>INTONE CV</b>, amt at 15%.</li>
 </ol>
-<p><b>Settings:</b> TIME noon (tune with V/OCT), INTONE fully clockwise, RAMP 1 o'clock, CURVE 3 o'clock (towards sine), VCF cutoff low with a little resonance.</p>
-<p><b>Variations:</b> INTONE at 2 o'clock gives an out-of-tune, shimmering chord that beats slowly. Turn on Run (Plume) with RUN at 1 V for stabs instead of a pad.</p>
+<p><b>Settings:</b> Run ON with the RUN knob at -2 V (slow, soft low pass gates that stay open while the gate is held), TIME noon (tune with V/OCT), INTONE fully clockwise, RAMP 1 o'clock, CURVE 3 o'clock (towards sine), VCF cutoff low with a little resonance.</p>
+<p><b>Variations:</b> INTONE at 2 o'clock gives an out-of-tune, shimmering chord that beats slowly. Short triggers instead of gates, with RUN at +2 V, give stabs instead of a pad.</p>
 </div>
 
 <div class="card">
@@ -148,7 +148,7 @@ p.setAttribute('stroke','var('+cols[n-1]+')');s.appendChild(p);}})();
 <li><span class="ch6">6N</span> &rarr; RAMP CV of this same Just Fiends, amt 30% (it reshapes itself).</li>
 </ol>
 <p><b>Settings:</b> TIME fully anticlockwise to 9 o'clock (slow), INTONE 1 o'clock (non-whole ratios), RAMP noon, CURVE 2 o'clock.</p>
-<p><b>Variations:</b> INTONE fully anticlockwise makes 6N take six times longer than IDENTITY, which suits a 2 to 5 minute arc. Send a trigger to IDENTITY at the start of each 32-bar section to realign everything on purpose.</p>
+<p><b>Variations:</b> INTONE fully anticlockwise makes 6N take six times longer than IDENTITY, which suits a 2 to 5 minute arc. Send a trigger to 6N at the start of each 32-bar section to realign all six on purpose.</p>
 </div>
 
 <div class="card">
@@ -156,11 +156,11 @@ p.setAttribute('stroke','var('+cols[n-1]+')');s.appendChild(p);}})();
 <span class="tag">SHAPE</span><span class="tag">CYCLE</span><span class="tag">RUN: VOLLEY</span>
 <ol class="cables">
 <li>Clock (16ths) &rarr; a Bernoulli gate or probability module &rarr; Just Fiends <b>IDENTITY</b>.</li>
-<li>Random (sample and hold, 0 to 5 V, clocked by the same 16ths) &rarr; <b>RUN IN</b>.</li>
+<li>Random (sample and hold, &plusmn;2 V, clocked by the same 16ths) &rarr; <b>RUN IN</b>.</li>
 <li><span class="ch1">IDENTITY</span> &rarr; VCA CV for a noise hi-hat; <span class="ch3">3N</span> &rarr; VCA CV for a second, brighter hat.</li>
 </ol>
-<p><b>Settings:</b> TIME around 2 o'clock (one burst cycle about one 64th), INTONE fully clockwise, RAMP fully anticlockwise, CURVE 1 o'clock, RUN knob 0.</p>
-<p><b>Variations:</b> Fixed RUN at 1.3 V gives exactly 5 hits. Switch to Shape / Transient (Shift) and the same patch becomes a clock divider instead.</p>
+<p><b>Settings:</b> TIME around 2 o'clock (one burst cycle about one 64th), INTONE fully clockwise, RAMP fully anticlockwise, CURVE 1 o'clock, RUN knob -2 V, so each hit plays 1 to 6 times.</p>
+<p><b>Variations:</b> Fixed RUN at -0.8 V gives exactly 5 hits; below -4 V it is choked. Switch to Shape / Transient (Shift) and the same patch becomes a clock divider instead.</p>
 </div>
 
 <div class="card">
@@ -168,9 +168,9 @@ p.setAttribute('stroke','var('+cols[n-1]+')');s.appendChild(p);}})();
 <span class="tag">SOUND</span><span class="tag">SUSTAIN</span><span class="tag">RUN: PLUME</span><span class="tag">POLY PITCH</span>
 <ol class="cables">
 <li>Sequencer or Hapax pitch (mono is fine) &rarr; <b>TIME V/OCT</b>.</li>
-<li>Euclidean gates (for example Seuperclidean) &rarr; <b>IDENTITY</b>.</li>
+<li>Euclidean gates (for example Seuperclidean) &rarr; <b>2N</b> (it normals to IDENTITY too).</li>
 <li><span class="ch1">IDENTITY</span> &rarr; a saturator or drive, then mixer. <span class="ch2">2N</span> &rarr; same mixer, low level.</li>
-<li>Slow LFO &rarr; <b>RUN IN</b> (0 to 3 V) so decays open and close over 16 bars.</li>
+<li>Slow LFO &rarr; <b>RUN IN</b> (&plusmn;3 V) so plucks get longer and shorter over 16 bars.</li>
 </ol>
 <p><b>Settings:</b> TIME one octave down (about 10 o'clock), INTONE fully clockwise (2N is an octave up), RAMP 11 o'clock, CURVE noon (the pluck darkens towards sine on its own). Right-click: keep Poly pitch off for this one.</p>
 <p><b>Variations:</b> Turn Poly pitch on, patch a poly MIDI to CV, and you have six-voice plucked chords.</p>
@@ -193,40 +193,40 @@ p.setAttribute('stroke','var('+cols[n-1]+')');s.appendChild(p);}})();
 <h3>6. Strata chord glides</h3>
 <span class="tag">SHAPE</span><span class="tag">SUSTAIN</span><span class="tag">RUN: STRATA</span>
 <ol class="cables">
-<li>Sequencer pitch CV (0 to 8 V) &rarr; <b>RUN IN</b>.</li>
-<li>Each output <span class="ch1">IDENTITY</span> to <span class="ch6">6N</span> &rarr; the V/OCT of six oscillators (or a poly oscillator from POLY OUT).</li>
+<li>A steady 5 V (an offset module, or a gate held high) &rarr; <b>6N</b>, so all six sit in their sustain stage.</li>
+<li>Sequencer CV (-5 to +5 V) &rarr; <b>RUN IN</b>.</li>
+<li>Each output <span class="ch1">IDENTITY</span> to <span class="ch6">6N</span> &rarr; a quantizer, then the V/OCT of six oscillators (or a poly quantizer and oscillator from POLY OUT). RUN is not 1 V/oct, so the quantizer keeps the notes in a scale.</li>
 <li>Mix the oscillators, then a filter and reverb.</li>
 </ol>
 <p><b>Settings:</b> TIME 1 o'clock, INTONE fully anticlockwise (6N glides six times slower), RAMP noon.</p>
-<p>Each new note starts as one pitch and smears into the next one voice by voice. Patch gates into individual triggers to freeze some voices and build chords from held notes.</p>
+<p>Each new note starts as one pitch and smears into the next one voice by voice, arriving at the same note at different times. Patch separate gates into individual triggers and the voices drop to 0 V when theirs goes low.</p>
 </div>
 
 <div class="card">
 <h3>7. Floom drone</h3>
 <span class="tag">SOUND</span><span class="tag">CYCLE</span><span class="tag">RUN: FLOOM</span>
 <ol class="cables">
-<li>Very slow LFO (0.02 Hz) &rarr; <b>RUN IN</b>.</li>
+<li>Very slow LFO (0.02 Hz, &plusmn;5 V) &rarr; <b>RUN IN</b>.</li>
 <li><b>MIX</b> &rarr; a VCA, then delay and reverb.</li>
 </ol>
-<p><b>Settings:</b> TIME 9 o'clock (low), INTONE 1 o'clock, CURVE fully clockwise (sine), RAMP noon. As the RUN voltage rises, the ring of FM blooms from a soft chord into metallic noise and back.</p>
+<p><b>Settings:</b> TIME 9 o'clock (low), INTONE 1 o'clock, CURVE fully clockwise (sine), RAMP noon, FM knob 2 o'clock. The LFO sweeps each modulator from half to double its voice's pitch, so the chord passes through clangy and sweet ratios. FM fully clockwise, RUN below 0 and RAMP at either end gives noise.</p>
 </div>
 
 <h2 id="rig">Moving it to your hardware rig</h2>
-<p>Everything above transfers to the real module in your case, with the same knob positions as starting points.</p>
+<p>Since 2.5.0 the engine follows the Just Friends Technical Map (normalling, retrigger rules, FM, MIX and the six Run modes), so the patches above transfer to the real module with the same knob positions as starting points. On hardware, use a fixed voltage into RUN instead of the RUN knob.</p>
 <ul>
 <li><b>Pitch:</b> Metropolix or Hapax pitch into TIME (V/OCT). One note plus INTONE clockwise gives the chord in patch 1.</li>
-<li><b>Triggers:</b> Pam's New Workout clock outputs into IDENTITY and 4N to split the normals. Marbles t outputs for random gates. DROID logic (for example a gate that only passes every third bar) into individual channels.</li>
+<li><b>Triggers:</b> Pam's New Workout clock outputs into 6N and 3N to split the normals (6N fires 4N to 6N, 3N fires IDENTITY to 3N). Marbles t outputs for random gates. DROID logic (for example a gate that only passes every third bar) into individual channels.</li>
 <li><b>Run:</b> on hardware there is no RUN knob or button; patching the RUN jack is what turns it on. Use a Pam's output set to a fixed voltage, or a DROID P2B8 fader, as your RUN knob.</li>
 <li><b>Processing:</b> outputs into Three Sisters (as a filter bank for patch 1), Cold Mac (crossfade two channels with SURVEY), Just Friends' own outputs into Mangrove for formant pings.</li>
-<li><b>Ableton:</b> Live as clock through CV Tools out of the disting NT, into IDENTITY in Geode-like setups, or into Pam's which then feeds Just Friends.</li>
+<li><b>Ableton:</b> Live as clock through CV Tools out of the disting NT, into 6N to fire all six, or into Pam's which then feeds Just Friends.</li>
 </ul>
 <p class="note">Poly pitch and Geode need a Teletype or crow on the hardware (over i2c). In VCV they are menu items, so you can learn the ideas now.</p>
 
 <h2 id="differences">How Just Fiends differs from the hardware</h2>
 <ul>
-<li>Added for learning: the display, mode-aware tooltips, trigger buttons, the RUN knob and ON button, CV amount trimmers, poly in and out, and a velocity option in the menu.</li>
-<li>The six Run modes follow the hardware's ideas and names, but the details are this module's own versions, not exact copies. In particular, Spill (timed bursts) and Floom (a ring of FM) are interpretations.</li>
-<li>MIX here is the highest slope in Shape range and a soft-clipped sum in Sound range.</li>
+<li>Added for learning: the display, mode-aware tooltips, trigger buttons, the RUN knob and ON button, CV amount trimmers, poly in and out, and a velocity option in the menu (off by default; the hardware has no velocity).</li>
+<li>2.5.0 was checked against the Technical Map. Still this module's own guesses: the TIME ranges, the shape of the INTONE knob between its ends, the Plume vactrol times and the Floom FM depth, which the map does not give in numbers.</li>
 <li>Geode is driven by a clock at IDENTITY and INTONE, not by Teletype commands.</li>
 </ul>
 
@@ -235,10 +235,10 @@ p.setAttribute('stroke','var('+cols[n-1]+')');s.appendChild(p);}})();
 <div class="wrap"><table>
 <tr><th>Control</th><th>What it does</th><th>Try</th></tr>
 <tr><td><b>FREQ</b> + V/OCT, FM</td><td>The centre frequency, 20 Hz to 20 kHz (about 640 Hz at noon). V/OCT is 1 V/oct, so it tracks pitch when it rings. The FM knob is an attenuverter in octaves per volt.</td><td>Sweep it with the display open.</td></tr>
-<tr><td><b>SPAN</b> + CV, amt</td><td>How far LOW and HIGH sit from the centre: 0 to 4 octaves each way. Fully anticlockwise, all three meet at FREQ.</td><td>Around 10 o'clock for a three-band split.</td></tr>
-<tr><td><b>QUALITY</b> + CV, amt</td><td>Noon is flat. Clockwise adds resonance, and fully clockwise the sisters sing on their own (self-oscillation). Anticlockwise is <b>anti-resonance</b>: CENTRE turns into a notch and the edges get dips.</td><td>Full anticlockwise on CENTRE for a phaser-like hollow.</td></tr>
-<tr><td><b>MODE</b></td><td>CROSSOVER: LOW is a low pass, CENTRE a band pass, HIGH a high pass, so the three outputs split the sound into bands that add back up at ALL. FORMANT: all three are band passes, which makes vowel-like peaks.</td><td></td></tr>
-<tr><td>Inputs LOW, CENTRE, HIGH, ALL</td><td>Each sister has its own input. ALL feeds every sister with nothing patched, so one cable into ALL is the usual start.</td><td>Three different sounds into the three inputs: one filter bank, three voices.</td></tr>
+<tr><td><b>SPAN</b> + CV, amt</td><td>How far LOW's cutoff sits below FREQ and HIGH's above. They meet at about 10 o'clock; clockwise spreads them up to 4 octaves each way. Below 10 o'clock they cross, and in CROSSOVER the CENTRE band closes like a VCA.</td><td>SPAN CV with the knob fully anticlockwise: CENTRE becomes a gate.</td></tr>
+<tr><td><b>QUALITY</b> + CV, amt</td><td>Noon is flat. Clockwise adds resonance; from about 3 o'clock the sisters sing on their own (2 to 3 o'clock is best for pinging). Anticlockwise is a <b>dry/wet</b> control: it mixes the filtered-out sound back in, with notches where the two cancel near the cutoffs. Fully anticlockwise passes nearly everything.</td><td>Slightly anticlockwise for a blend of filtered and dry.</td></tr>
+<tr><td><b>MODE</b></td><td>CROSSOVER: LOW is a low pass at its cutoff, HIGH a high pass at its cutoff, and CENTRE passes the band between the two, so the three outputs split the sound into bands that add back up at ALL. FORMANT: all three are band passes, which makes vowel-like peaks.</td><td></td></tr>
+<tr><td>Inputs LOW, CENTRE, HIGH, ALL</td><td>Each sister has its own input. ALL in is added to all three, so one cable into ALL is the usual start, and a sound in LOW plus one in ALL are both filtered by LOW.</td><td>Three different sounds into the three inputs: one filter bank, three voices.</td></tr>
 <tr><td>Outputs LOW, CENTRE, HIGH, ALL</td><td>Each sister, and the three summed.</td><td></td></tr>
 </table></div>
 <p>The display draws the response of all three (orange LOW, green CENTRE, blue HIGH) from 20 Hz to 20 kHz, with their frequencies underneath. Everything is polyphonic up to 16 channels.</p>
@@ -249,12 +249,12 @@ p.setAttribute('stroke','var('+cols[n-1]+')');s.appendChild(p);}})();
 <div class="wrap"><table>
 <tr><th>Control</th><th>What it does</th><th>Try</th></tr>
 <tr><td><b>PITCH</b>, FINE + V/OCT</td><td>The core pitch, middle C at noon. FINE covers one octave.</td><td></td></tr>
-<tr><td><b>FM</b> + FM in, FM INDEX in</td><td>Linear, through-zero FM. The FM knob is the depth; the FM INDEX jack (0 to 5 V) multiplies it, so an envelope there gives FM that blooms and fades.</td><td>The SINE of a second Mangrave into FM.</td></tr>
-<tr><td><b>FORMANT</b> + CV, amt</td><td>The impulse length. Clockwise = shorter: brighter, with rests between impulses (think of it as a high pass). Anticlockwise = longer. Once an impulse lasts longer than a core cycle it has to skip cycles, and the pitch drops to 1/2, 1/3, 1/4: the <b>undertone series</b>. The display tells you when that happens.</td><td>CONSTANT WAVE, BARREL fully anticlockwise, then turn FORMANT slowly down from noon.</td></tr>
+<tr><td><b>FM</b> + FM in, FM INDEX in</td><td>Linear, through-zero FM. The FM knob is the depth; the FM INDEX jack (0 to 5 V) multiplies it, so an envelope there gives FM that blooms and fades. Like the hardware, the FM jack blocks DC; the right-click menu has the DC-coupled mod.</td><td>The SINE of a second Mangrave into FM.</td></tr>
+<tr><td><b>FORMANT</b> + CV, amt</td><td>The impulse length. Clockwise = shorter: brighter, with rests between impulses (think of it as a high pass). Anticlockwise = longer. The impulse ignores the core while it is rising, so once its rise lasts longer than a core cycle it skips cycles and the pitch drops to 1/2, 1/3, 1/4: the <b>undertone series</b>. A core edge that lands while it is falling turns it round, which gives <b>split tones</b> (multiphonics) between the steps. The display tells you which is happening.</td><td>CONSTANT WAVE, BARREL fully anticlockwise, then turn FORMANT slowly down from noon.</td></tr>
 <tr><td><b>BARREL</b> + CV, amt</td><td>The impulse's rise against its fall. Anticlockwise: all rise, a ramp. Noon: a triangle, the softest. Clockwise: all fall, a saw.</td><td></td></tr>
 <tr><td><b>AIR</b> + CV, amt</td><td>The VCA and overdrive. Nothing at 0, clean and soft low down (nearly a sine around 9 o'clock), 10 V peak to peak at noon, squared off and full of odd harmonics at the top.</td><td>An envelope from Just Fiends into AIR CV.</td></tr>
 <tr><td><b>CONSTANT</b></td><td>WAVE: the impulse length follows the pitch, so the waveform keeps its shape up and down the keyboard. FORMANT: the impulse length stays put, so one region of the spectrum is always emphasised, like a wind instrument.</td><td>Play the same line in each.</td></tr>
-<tr><td><b>SYNC</b> in</td><td>Resets the core. Sync to a slower or faster oscillator and sweep PITCH for overtones.</td><td></td></tr>
+<tr><td><b>SYNC</b> in</td><td>Resets the core (hard sync, as the PPM manual describes; the technical map calls it a soft reset). Sync to a slower or faster oscillator and sweep PITCH for overtones.</td><td></td></tr>
 <tr><td>Outputs SQUARE, FORMANT</td><td>The core, and the impulses through AIR.</td><td></td></tr>
 </table></div>
 
@@ -300,7 +300,7 @@ p.setAttribute('stroke','var('+cols[n-1]+')');s.appendChild(p);}})();
 <li>Weird Sisters <b>LOW</b>, <b>CENTRE</b>, <b>HIGH</b> &rarr; three mixer channels, panned left, centre, right.</li>
 <li>Just Fiends in a second instance, Shape / Cycle, slow: 2N &rarr; Weird Sisters SPAN CV, 3N &rarr; FREQ V/OCT.</li>
 </ol>
-<p><b>Settings:</b> Weird Sisters CROSSOVER, SPAN 10 o'clock, QUALITY 2 o'clock. The chord's harmonics move between the three bands and across the stereo field as the LFOs drift.</p>
+<p><b>Settings:</b> Weird Sisters CROSSOVER, SPAN 1 o'clock, QUALITY 1 o'clock. The chord's harmonics move between the three bands and across the stereo field as the LFOs drift.</p>
 </div>
 <div class="card">
 <h3>10. Singing sisters</h3>
@@ -310,14 +310,14 @@ p.setAttribute('stroke','var('+cols[n-1]+')');s.appendChild(p);}})();
 <li>A short trigger or clicks (Just Fiends Sound / Transient) &rarr; Weird Sisters <b>ALL</b> in to ping the filters.</li>
 <li>LOW, CENTRE, HIGH &rarr; mixer.</li>
 </ol>
-<p><b>Settings:</b> QUALITY fully clockwise (they sing on their own) or 3 o'clock (they ring after each ping, like tuned percussion). SPAN sets the interval: a little past 9 o'clock (one octave, shown on the display) puts LOW and HIGH an octave each side, so you get three octaves of the same note. The display shows the three peaks.</p>
+<p><b>Settings:</b> FORMANT mode. QUALITY 3 o'clock or more (they sing on their own) or about 2:30 (they ring after each ping, like tuned percussion). SPAN sets the interval: just before noon (one octave, shown on the display) puts LOW and HIGH an octave each side, so you get three octaves of the same note. The display shows the three peaks.</p>
 </div>
 
 <h3>Weird Sisters and Mangrave on the hardware</h3>
 <ul>
 <li>The real Three Sisters and Mangrove in your case have the same main controls (FREQ, SPAN, QUALITY, MODE; PITCH, FINE, FM, FORMANT, BARREL, AIR, CONSTANT, SYNC, plus the PPM switch and jacks), so these patches carry over as starting points.</li>
 <li>Added for learning: the displays, tooltips, CV amount trimmers, the FIRE button, and polyphony. On the hardware, FM INDEX is a CV input only; here there is also a knob.</li>
-<li>These are this plugin's own models built from the hardware's ideas, not circuit copies. In particular, Weird Sisters' formant mode and anti-resonance, and Mangrave's overdrive curve and PPM details (the exact sync behaviour and the HOLLOW divider), are interpretations. Mangrave's core and impulse follow the Mangrove technical map closely.</li>
+<li>These are this plugin's own models built from the hardware's ideas, not circuit copies. Since 2.5.0 both follow their technical maps closely (block structure, SPAN crossing, dry/wet QUALITY, ALL in, multiphonics, AC-coupled FM). Still interpretations: Weird Sisters' exact ranges and gain staging, Mangrave's overdrive curve, and PPM details (the exact sync behaviour and the HOLLOW divider).</li>
 </ul>
 </main>
 </body>

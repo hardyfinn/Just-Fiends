@@ -74,7 +74,7 @@ struct JustFiends : Module {
 	};
 
 	SlopeEngine e;
-	bool polyPitch = false, geode = false, velocity = true;
+	bool polyPitch = false, geode = false, velocity = false;
 	int geodeRealign = 1;
 
 	// display buffers
@@ -99,7 +99,7 @@ struct JustFiends : Module {
 		configParam<FiendQuantity>(INTONE_PARAM, -1.f, 1.f, 0.f, "Intone");
 		configParam<FiendQuantity>(RAMP_PARAM, -1.f, 1.f, 0.f, "Ramp");
 		configParam<FiendQuantity>(CURVE_PARAM, -1.f, 1.f, 0.f, "Curve");
-		configParam<FiendQuantity>(FM_PARAM, -1.f, 1.f, 0.f, "FM amount", "%", 0.f, 100.f);
+		configParam<FiendQuantity>(FM_PARAM, -1.f, 1.f, 0.f, "FM depth (clockwise: TIME, anticlockwise: INTONE)", "%", 0.f, 100.f);
 		configParam<FiendQuantity>(RUN_PARAM, -5.f, 5.f, 0.f, "Run", " V");
 		configParam(INTONE_ATT_PARAM, -1.f, 1.f, 1.f, "Intone CV amount", "%", 0.f, 100.f);
 		configParam(RAMP_ATT_PARAM, -1.f, 1.f, 1.f, "Ramp CV amount", "%", 0.f, 100.f);
@@ -119,7 +119,7 @@ struct JustFiends : Module {
 		configInput<FiendPort>(CURVE_INPUT, "Curve CV (+-5 V)");
 		configInput<FiendPort>(RUN_INPUT, "Run CV (patching it turns Run mode on)");
 		configInput<FiendPort>(POLY_TRIG_INPUT, "Poly triggers / gates (channel 1 = IDENTITY ... 6 = 6N)");
-		configOutput(MIX_OUTPUT, "Mix (shape: the highest slope, sound: all six summed)");
+		configOutput(MIX_OUTPUT, "Mix (shape: the highest of each slope divided by its number, sound: all six mixed)");
 		configOutput(POLY_OUTPUT, "Poly: all six channels");
 		configLight(RUN_LIGHT, "Run mode");
 		lightDiv.setDivision(64);
@@ -149,18 +149,24 @@ struct JustFiends : Module {
 			return "Bends the slope: rectangle, logarithmic, linear at noon, exponential, sine. Now: " + curveWords(e.c.curve) + ".";
 		};
 		q(FM_PARAM)->describe = [=]() {
-			return std::string("How much the FM input bends TIME, in octaves per volt. Anticlockwise inverts it. Exponential, so it suits vibrato and pitch sweeps.");
+			if (e.behaviour == B_FLOOM)
+				return std::string("Floom: depth of each voice's own sine modulator. Clockwise: all six equally. Anticlockwise: by channel number, IDENTITY untouched. The FM jack scales the depth.");
+			return std::string("Linear, through-zero FM from the FM jack. Noon: none. Clockwise: all six channels equally (5 V at full = 100%). Anticlockwise: INTONE style, 6N most, IDENTITY not at all.")
+				+ (e.c.range == SOUND ? " Sound range blocks DC on the FM jack." : " Shape range passes DC, so a steady voltage shifts the speed.");
 		};
 		q(RUN_PARAM)->describe = [=]() {
 			std::string s = "Sets the Run voltage (added to the RUN jack). ";
 			if (!runActive()) return s + "Run is off now: press RUN or patch the RUN jack.";
 			switch (e.behaviour) {
-				case B_SHIFT: return s + string::f("Shift: triggers are accepted after %.0f%% of the slope.", e.runFrac(e.c.runV) * 100.f);
-				case B_STRATA: return s + string::f("Strata: the channels slew towards %.2f V.", std::min(8.f, std::max(0.f, e.c.runV)));
-				case B_VOLLEY: return s + string::f("Volley: %d cycles per trigger.", 1 + (int) std::lround(e.runFrac(e.c.runV) * 15.f));
-				case B_SPILL: return s + string::f("Spill: each burst lasts %.0f ms.", 5.f * std::pow(2.f, e.runFrac(e.c.runV) * 8.6f));
-				case B_PLUME: return s + string::f("Plume: plucks decay over %.0f ms.", 20.f * std::pow(2.f, e.runFrac(e.c.runV) * 7.6f));
-				case B_FLOOM: return s + string::f("Floom: FM depth %.0f%%.", e.runFrac(e.c.runV) * 100.f);
+				case B_SHIFT: return s + string::f("Shift: a slope takes a retrigger after %.0f%% of its cycle (-5 V any time, 0 V after the rise, +5 V only when done).", SlopeEngine::retrigPoint(e.c.runV, e.s[0].rise) * 100.0);
+				case B_STRATA: return s + string::f("Strata: sustain level %.2f V before CURVE (-5..+5 V maps to 0..8 V).", (SlopeEngine::runPos(e.c.runV) + 1.f) * 4.f);
+				case B_VOLLEY: {
+					int n = SlopeEngine::volleyCount(e.c.runV);
+					return s + (n <= 0 ? std::string("Volley: choked, triggers are ignored (below -4 V).") : string::f("Volley: %d envelopes per trigger.", n));
+				}
+				case B_SPILL: return s + string::f("Spill: 2N-6N take a retrigger after %.0f%% of their cycle.", SlopeEngine::retrigPoint(e.c.runV, e.s[1].rise) * 100.0);
+				case B_PLUME: return s + string::f("Plume: low pass gate attack %.1f ms, decay %.0f ms.", SlopeEngine::plumeAttack(e.c.runV) * 1000.f, SlopeEngine::plumeDecay(e.c.runV) * 1000.f);
+				case B_FLOOM: return s + string::f("Floom: each modulator runs at x%.2f of its voice.", SlopeEngine::floomRatio(e.c.runV));
 				default: return s;
 			}
 		};
@@ -171,8 +177,8 @@ struct JustFiends : Module {
 					if (i == 0) return std::string("Geode is on: this is the clock. The six channels play rhythms locked to it.");
 					return std::string("Geode is on: this jack is ignored, the clock at IDENTITY drives everything.");
 				}
-				if (i == 0) s = "Fires IDENTITY and, through the normals, every channel below it that has nothing patched. ";
-				else s = string::f("Fires %s and every unpatched channel below it. Unpatched, it follows the jack above. ", CH_NAMES[i]);
+				if (i == 5) s = "Fires 6N and every unpatched jack to its left: one cable here fires all six. ";
+				else s = string::f("Fires %s and every unpatched jack to its left. Unpatched, it follows the jack to its right. ", CH_NAMES[i]);
 				s += behaviourHint(e.behaviour);
 				return s;
 			};
@@ -192,14 +198,14 @@ struct JustFiends : Module {
 	float JfRatio(int i) { return polyPitch ? 1.f : (float) SlopeEngine::intoneRatio(i + 1, e.c.intone); }
 
 	void onReset() override {
-		polyPitch = false; geode = false; velocity = true; geodeRealign = 1;
+		polyPitch = false; geode = false; velocity = false; geodeRealign = 1;
 	}
 
 	json_t* dataToJson() override {
 		json_t* r = json_object();
 		json_object_set_new(r, "polyPitch", json_boolean(polyPitch));
 		json_object_set_new(r, "geode", json_boolean(geode));
-		json_object_set_new(r, "velocity", json_boolean(velocity));
+		json_object_set_new(r, "velocityOn", json_boolean(velocity));
 		json_object_set_new(r, "geodeRealign", json_integer(geodeRealign));
 		return r;
 	}
@@ -207,7 +213,7 @@ struct JustFiends : Module {
 		json_t* j;
 		if ((j = json_object_get(r, "polyPitch"))) polyPitch = json_boolean_value(j);
 		if ((j = json_object_get(r, "geode"))) geode = json_boolean_value(j);
-		if ((j = json_object_get(r, "velocity"))) velocity = json_boolean_value(j);
+		if ((j = json_object_get(r, "velocityOn"))) velocity = json_boolean_value(j);  // 2.4.0 and older saved "velocity" (on by default): ignored
 		if ((j = json_object_get(r, "geodeRealign"))) geodeRealign = std::max(1, (int) json_integer_value(j));
 	}
 
@@ -223,7 +229,9 @@ struct JustFiends : Module {
 		c.intone = cv(INTONE_PARAM, INTONE_INPUT, INTONE_ATT_PARAM);
 		c.ramp = cv(RAMP_PARAM, RAMP_INPUT, RAMP_ATT_PARAM);
 		c.curve = cv(CURVE_PARAM, CURVE_INPUT, CURVE_ATT_PARAM);
-		c.fmOct = params[FM_PARAM].getValue() * inputs[FM_INPUT].getVoltage();
+		c.fmKnob = params[FM_PARAM].getValue();
+		c.fmV = inputs[FM_INPUT].getVoltage();
+		c.fmConnected = inputs[FM_INPUT].isConnected();
 		c.run = runActive();
 		c.runV = params[RUN_PARAM].getValue() + inputs[RUN_INPUT].getVoltage();
 		c.polyPitch = polyPitch;
@@ -233,27 +241,23 @@ struct JustFiends : Module {
 		for (int i = 0; i < 6; i++)
 			c.voct[i] = polyPitch ? inputs[TIME_INPUT].getPolyVoltage(i) : inputs[TIME_INPUT].getVoltage(0);
 
-		// triggers: each jack (or its button) normals down to the next unpatched one
-		float prevV = 0.f;
-		bool prevConn = false;
+		// triggers: as on the hardware, each unpatched jack follows the jack to
+		// its right, so one cable into 6N fires all six. A button fires its own
+		// channel only; the poly jack adds to each channel.
+		float tin[6], tnorm[6];
+		bool tpatched[6], tconn[6];
+		for (int i = 0; i < 6; i++) {
+			tpatched[i] = inputs[TRIG_INPUT + i].isConnected();
+			tin[i] = inputs[TRIG_INPUT + i].getVoltage();
+		}
+		normalTriggers(tin, tpatched, tnorm, tconn);
 		int polyCh = inputs[POLY_TRIG_INPUT].getChannels();
 		for (int i = 0; i < 6; i++) {
-			bool pressed = params[TRIG_BUTTON + i].getValue() > 0.5f;
-			bool patched = inputs[TRIG_INPUT + i].isConnected();
-			float v = prevV;
-			bool conn = prevConn;
-			if (patched || pressed) {
-				v = patched ? inputs[TRIG_INPUT + i].getVoltage() : 0.f;
-				if (pressed) v = std::max(v, 5.f);
-				conn = conn || patched;
-				if (patched) conn = true;
-			}
-			prevV = v;
-			prevConn = conn;
-			float pv = v;
-			if (i < polyCh) { pv = std::max(v, inputs[POLY_TRIG_INPUT].getVoltage(i)); conn = true; }
-			e.gateV[i] = pv;
-			e.gateConn[i] = conn;
+			float v = tnorm[i];
+			if (params[TRIG_BUTTON + i].getValue() > 0.5f) v = std::max(v, 5.f);
+			if (i < polyCh) { v = std::max(v, inputs[POLY_TRIG_INPUT].getVoltage(i)); tconn[i] = true; }
+			e.gateV[i] = v;
+			e.gateConn[i] = tconn[i];
 		}
 
 		e.process(args.sampleTime);
@@ -424,7 +428,7 @@ struct FiendDisplay : Widget {
 				float v = m->shown[k][j];
 				float n;
 				if (shape) n = clamp(v / 8.f, 0.f, 1.f);
-				else n = clamp(v / (k == 6 ? 20.f : 10.f) + 0.5f, 0.f, 1.f);
+				else n = clamp(v / (k == 6 ? 15.f : 10.f) + 0.5f, 0.f, 1.f);
 				float px = tx + tw * j / (N - 1);
 				float py = y + laneH - 1.5f - n * (laneH - 3.f);
 				if (j == 0) nvgMoveTo(args.vg, px, py);
@@ -538,7 +542,7 @@ struct JustFiendsWidget : ModuleWidget {
 			[=]() { int r = m->geodeRealign, k = 0; while ((1 << k) < r && k < 4) k++; return k; },
 			[=](int i) { m->geodeRealign = 1 << i; }));
 		menu->addChild(new MenuSeparator);
-		menu->addChild(createBoolPtrMenuItem("Sound range: trigger voltage sets loudness (5 V = full)", "", &m->velocity));
+		menu->addChild(createBoolPtrMenuItem("Velocity (not on the hardware): in sound range the trigger's peak voltage sets loudness", "", &m->velocity));
 	}
 };
 

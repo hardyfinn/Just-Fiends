@@ -37,13 +37,33 @@ int main() {
 		CHECK(std::abs(d.core / S - 523.3) < 3, "1 V/oct doubles the pitch (%.0f Hz)", d.core / S);
 	}
 	{
-		// undertones: a long impulse skips core cycles
-		Params p; p.formant = 0.5f - 0.125f;  // ratio 1.6 x the period -> every 2nd cycle
+		// undertones: a long impulse skips core cycles (BARREL at utone: almost all rise)
+		Params p; p.barrel = -1.f; p.formant = 0.5f - 0.125f;  // ratio 1.6 x the period -> every 2nd cycle
 		Count a = run(p);
 		p.formant = 0.5f - 0.25f;             // ratio 3.2 -> every 4th cycle
 		Count b = run(p);
 		CHECK(std::abs(a.imp / S - 130.8) < 3 && std::abs(b.imp / S - 65.4) < 3, "FORMANT low gives undertones: /2 then /4 (%.0f, %.0f Hz)", a.imp / S, b.imp / S);
 		CHECK(std::abs(a.hollow / S - 65.4) < 3, "HOLLOW divides the impulse rate by two (%.0f Hz)", a.hollow / S);
+	}
+	{
+		// multiphonics: near noon BARREL a retrigger lands while the impulse is falling and turns it round
+		Params p; p.formant = 0.5f - 0.125f;  // ratio 1.6, triangle: rise 0.8 periods, falling when the next edge comes
+		Count a = run(p);
+		CHECK(a.imp / S > 200.0, "a trigger while falling turns the impulse round (%.0f starts a second, not 131)", a.imp / S);
+	}
+	{
+		// FM input is AC-coupled: a steady 2.5 V does not move the pitch once settled
+		Params p; p.fm = 2.5f; Count c = run(p, 2.f);
+		CHECK(std::abs(c.core / 1.8 - 261.6) < 6, "steady FM voltage is blocked (%.0f Hz)", c.core / 1.8);
+		p.fmDcCoupled = true; Count d = run(p, 1.f);
+		CHECK(std::abs(d.core / S - 392.4) < 4, "DC-coupled mod: 2.5 V shifts the core to 392 Hz (%.0f Hz)", d.core / S);
+	}
+	{
+		// through-zero FM: the core still fires impulses while running backwards
+		GroveEngine e; Params p; p.fmDcCoupled = true; p.fm = -10.f;  // f = -base
+		int n = 0;
+		for (int i = 0; i < (int) SR; i++) { e.process(p, 0, 0, false, SR); if (e.coreEdge) n++; }
+		CHECK(std::abs(n - 262) < 3, "core running backwards still fires once a cycle (%d)", n);
 	}
 	{
 		// constant formant: duration does not follow pitch

@@ -57,6 +57,17 @@ struct Mangrave : Module {
 	GroveEngine eng[16];
 	Params shown;
 	int channels = 1;
+	bool fmDcCoupled = false;  // the hardware mod: FM input passes DC
+
+	void onReset() override { fmDcCoupled = false; }
+	json_t* dataToJson() override {
+		json_t* r = json_object();
+		json_object_set_new(r, "fmDcCoupled", json_boolean(fmDcCoupled));
+		return r;
+	}
+	void dataFromJson(json_t* r) override {
+		if (json_t* j = json_object_get(r, "fmDcCoupled")) fmDcCoupled = json_boolean_value(j);
+	}
 	dsp::ClockDivider lightDiv;
 
 	// scope: two core cycles of channel 1
@@ -122,7 +133,7 @@ struct Mangrave : Module {
 			return std::string("The VCA and overdrive. Closed at 0, clean and quiet low down, 10 V peak to peak at noon, then the sine-shaping overdrive squares it off. Turn it up to hear anything.");
 		};
 		q(FM_PARAM)->describe = [=]() {
-			return std::string("Linear FM depth (the FM INDEX CV multiplies it). Anticlockwise inverts it. Deep FM pushes the core through zero for clangy, bell-like tones.");
+			return std::string("Linear FM depth (the FM INDEX CV multiplies it). Anticlockwise inverts it. Deep FM pushes the core through zero for clangy, bell-like tones. The FM jack blocks DC like the hardware (right-click for the DC-coupled mod).");
 		};
 		((GroveSwitch*) paramQuantities[CONSTANT_PARAM])->describe = [=]() {
 			return std::string("WAVE: the impulse length follows the pitch, so the waveform keeps its shape as you play. FORMANT: the impulse length stays put, so a fixed region of the spectrum is emphasised, like a voice or a wind instrument.");
@@ -134,15 +145,16 @@ struct Mangrave : Module {
 
 	void process(const ProcessArgs& args) override {
 		int ch = 1;
-		for (int i : {VOCT_INPUT, SYNC_INPUT, FM_INPUT, TRIGGER_INPUT}) ch = std::max(ch, inputs[i].getChannels());
+		for (int i : {VOCT_INPUT, SYNC_INPUT, FM_INPUT, TRIGGER_INPUT, FORMANT_INPUT, BARREL_INPUT, AIR_INPUT, INDEX_INPUT, TOAIR_INPUT}) ch = std::max(ch, inputs[i].getChannels());
 		channels = ch;
 		Params p;
 		p.pitch = params[PITCH_PARAM].getValue();
 		p.fine = params[FINE_PARAM].getValue();
 		p.constant = params[CONSTANT_PARAM].getValue() > 0.5f ? CONST_FORMANT : CONST_WAVE;
 		p.ppm = (int) std::round(params[PPM_PARAM].getValue());
+		p.fmDcCoupled = fmDcCoupled;
 		bool button = params[TRIG_BUTTON].getValue() > 0.5f;
-		bool trigPatched = inputs[TRIGGER_INPUT].isConnected() || button;
+		bool trigPatched = inputs[TRIGGER_INPUT].isConnected();  // FIRE adds a trigger without silencing the core
 		float fmIdx = params[FM_PARAM].getValue();
 		for (int c = 0; c < ch; c++) {
 			float index = inputs[INDEX_INPUT].isConnected() ? clamp(inputs[INDEX_INPUT].getPolyVoltage(c) / 5.f, 0.f, 1.f) : 1.f;
@@ -278,7 +290,11 @@ struct GroveDisplay : Widget {
 		else if (p.constant == CONST_WAVE) {
 			double r = durationRatio(p.formant);
 			imp = string::f("IMPULSE x%.2f of a cycle", r);
-			if (r > 1.0 && p.ppm == PPM_IMPULSE) imp += string::f("  UNDERTONE 1/%d", (int) std::ceil(r));
+			double rr = r * riseShare(p.barrel);  // impulses are ignored only while rising
+			if (p.ppm == PPM_IMPULSE) {
+				if (rr > 1.0) imp += string::f("  UNDERTONE 1/%d", (int) std::ceil(rr));
+				else if (r > 1.0) imp += "  SPLIT TONE";
+			}
 		}
 		else imp = "IMPULSE " + msS(e.dur) + " (" + hzS(1.0 / e.dur) + ")";
 		text(args, W - pad, fy, imp, G_LEAF, NVG_ALIGN_RIGHT | NVG_ALIGN_MIDDLE, mm2px(2.2f));
@@ -335,6 +351,12 @@ struct MangraveWidget : ModuleWidget {
 		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(145.5, 109.8)), module, Mangrave::SAW_OUTPUT));
 		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(129.5, 122.0)), module, Mangrave::PWM_OUTPUT));
 		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(145.5, 122.0)), module, Mangrave::HOLLOW_OUTPUT));
+	}
+
+	void appendContextMenu(Menu* menu) override {
+		Mangrave* m = getModule<Mangrave>();
+		menu->addChild(new MenuSeparator);
+		menu->addChild(createBoolPtrMenuItem("DC-coupled FM (the hardware mod: a steady FM voltage shifts the pitch)", "", &m->fmDcCoupled));
 	}
 };
 

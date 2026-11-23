@@ -6,8 +6,10 @@
 //           FM). It gives SQUARE, and with PPM also SINE and SAW, all moulded
 //           from the triangle.
 //  IMPULSE  an AR envelope that rises to +1 and falls to -1, then rests. Each
-//           rising edge of the core fires it, but only when it is resting, so
+//           rising edge of the core fires it, but not while it is rising, so
 //           an impulse longer than the core period skips cycles: undertones.
+//           A trigger while it is falling turns it round: split tones
+//           (multiphonics) at the edges of each undertone.
 //           FORMANT sets the impulse duration (clockwise = shorter), BARREL
 //           the rise/fall balance (ramp, triangle, saw). CONSTANT WAVE adds the
 //           core frequency to FORMANT so the duration is a fixed share of the
@@ -41,6 +43,7 @@ struct Params {
 	int constant = CONST_WAVE;
 	int ppm = PPM_IMPULSE;
 	float toAir = 0.f;      // PPM TO AIR input, volts
+	bool fmDcCoupled = false;  // the hardware FM input is AC-coupled; a documented mod makes it DC-coupled
 };
 
 inline double pitchHz(const Params& p) {
@@ -69,6 +72,7 @@ struct GroveEngine {
 	bool started = false;     // an impulse started this sample (for the display and tests)
 	bool coreEdge = false;    // the core started a cycle this sample
 	double f0 = 261.6, dur = 0.003;
+	double fmDc = 0.0;        // DC blocker state for the FM input
 	// outputs, volts
 	float square = 0.f, sine = 0.f, saw = 0.f, tri = 0.f;
 	float out = 0.f, pwm = 0.f, hol = 0.f;
@@ -93,14 +97,18 @@ struct GroveEngine {
 		if (sh && !syncHigh) { ph = 0.0; coreEdge = true; }
 		syncHigh = sh;
 
-		// core
+		// core: linear through-zero FM, AC-coupled like the hardware
+		fmDc += (p.fm - fmDc) * (1.0 - std::exp(-2.0 * M_PI * 4.0 * dt));
+		double fm = p.fmDcCoupled ? p.fm : p.fm - fmDc;
 		double base = pitchHz(p);
-		double f = base * (1.0 + p.fm / 5.0);
+		double f = base * (1.0 + fm / 5.0);
 		f = std::max(-sr * 0.45, std::min((double) sr * 0.45, f));
 		f0 = f;
+		bool sqBefore = ph < 0.5;
 		ph += f * dt;
-		if (ph >= 1.0) { ph -= std::floor(ph); coreEdge = true; }
-		else if (ph < 0.0) { ph -= std::floor(ph); }
+		ph -= std::floor(ph);
+		// a new cycle = SQUARE goes high, whichever way the core runs
+		if (!sqBefore && ph < 0.5) coreEdge = true;
 		double t = ph < 0.5 ? 4.0 * ph - 1.0 : 3.0 - 4.0 * ph;
 		tri = (float) (5.0 * t);
 		sine = (float) (5.0 * std::sin(M_PI * 0.5 * t));
@@ -108,7 +116,7 @@ struct GroveEngine {
 		square = ph < 0.5 ? 5.f : -5.f;
 
 		// impulse duration
-		double period = 1.0 / std::max(0.5, std::fabs(base));
+		double period = 1.0 / std::max(0.5, std::fabs(f));  // CONSTANT WAVE follows the FM'd frequency
 		dur = p.constant == CONST_WAVE ? period * durationRatio(p.formant) : 1.0 / formantHz(p.formant);
 		dur = std::max(dur, 2.0 / sr);
 		double r = riseShare(p.barrel);
@@ -119,11 +127,9 @@ struct GroveEngine {
 		bool trigEdge = th && !trigHigh;
 		trigHigh = th;
 		bool coreTrig = coreEdge && !trigPatched;  // TRIGGER overrides the core's normal
-		if (p.ppm == PPM_IMPULSE) {
-			if (trigPatched ? trigEdge : coreTrig) fire(false);
-		}
-		else if (p.ppm == PPM_SYNC) {
-			if (trigPatched ? trigEdge : coreTrig) fire(true);
+		if (p.ppm == PPM_IMPULSE || p.ppm == PPM_SYNC) {
+			// receptive while resting or falling; ignored while rising
+			if (trigPatched ? trigEdge : (coreTrig || trigEdge)) fire(true);
 		}
 		else {  // CYCLE: only the TRIGGER jack soft-syncs it
 			if (trigPatched && trigEdge) fire(true);
